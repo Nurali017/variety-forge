@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, FileText, ArrowLeft } from "lucide-react";
@@ -40,6 +41,11 @@ export const VarietyHeader = ({ name, culture, status }: VarietyHeaderProps) => 
             <Button variant="outline" size="sm">
               <FileText className="mr-2 h-4 w-4" />
               Сформировать отчёт
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/variety/1/test-results">
+                Ввести результаты
+              </Link>
             </Button>
             <Button variant="outline" size="sm">
               <ArrowLeft className="mr-2 h-4 w-4" />
