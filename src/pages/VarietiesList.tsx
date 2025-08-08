@@ -2,6 +2,9 @@ import { useState } from "react";
 import { MainToolbar } from "@/components/varieties/MainToolbar";
 import { VarietiesFilter } from "@/components/varieties/VarietiesFilter";
 import { VarietiesTable } from "@/components/varieties/VarietiesTable";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { getVarieties } from "@/lib/varietiesStore";
 
 interface FilterState {
   search: string;
@@ -122,13 +125,30 @@ const VarietiesList = () => {
     setFilters(newFilters);
   };
 
+  const localVarieties = getVarieties();
+  const mappedLocal = localVarieties.map(v => ({
+    id: v.id,
+    name: v.name,
+    culture: v.cultureGroup,
+    applicant: v.applicant,
+    submissionDate: v.submissionDate,
+    status: v.status as any,
+  }));
+  const varieties = [...sampleVarieties, ...mappedLocal];
+
   return (
     <div className="min-h-screen bg-background">
       <MainToolbar />
       
       <div className="container mx-auto py-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div />
+          <Button asChild>
+            <Link to="/varieties/new">+ Добавить новый сорт</Link>
+          </Button>
+        </div>
         <VarietiesFilter onFilterChange={handleFilterChange} />
-        <VarietiesTable varieties={sampleVarieties} filters={filters} />
+        <VarietiesTable varieties={varieties} filters={filters} />
       </div>
     </div>
   );

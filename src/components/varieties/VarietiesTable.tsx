@@ -19,7 +19,7 @@ interface Variety {
   culture: string;
   applicant: string;
   submissionDate: string;
-  status: 'testing' | 'approved' | 'rejected';
+  status: 'testing' | 'approved' | 'rejected' | 'recommended' | 'extended' | 'removed';
 }
 
 interface FilterState {
@@ -40,7 +40,10 @@ type SortDirection = 'asc' | 'desc';
 const statusConfig = {
   testing: { label: 'На испытании', variant: 'secondary' as const, className: 'bg-processing text-processing-foreground hover:bg-processing/90' },
   approved: { label: 'Включён в реестр', variant: 'success' as const, className: '' },
-  rejected: { label: 'Отклонён', variant: 'destructive' as const, className: '' }
+  rejected: { label: 'Отклонён', variant: 'destructive' as const, className: '' },
+  recommended: { label: 'Рекомендован', variant: 'success' as const, className: '' },
+  extended: { label: 'Продлён', variant: 'secondary' as const, className: '' },
+  removed: { label: 'Снят', variant: 'destructive' as const, className: '' },
 };
 
 export const VarietiesTable = ({ varieties, filters }: VarietiesTableProps) => {

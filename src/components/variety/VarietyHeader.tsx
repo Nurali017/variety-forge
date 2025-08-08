@@ -6,13 +6,16 @@ import { Edit, FileText, ArrowLeft } from "lucide-react";
 interface VarietyHeaderProps {
   name: string;
   culture: string;
-  status: 'testing' | 'approved' | 'rejected';
+  status: 'testing' | 'approved' | 'rejected' | 'recommended' | 'extended' | 'removed';
 }
 
 const statusConfig = {
   testing: { label: 'На испытании', variant: 'secondary' as const, className: 'bg-processing text-processing-foreground hover:bg-processing/90' },
   approved: { label: 'Включён в реестр', variant: 'success' as const, className: '' },
-  rejected: { label: 'Отклонён', variant: 'destructive' as const, className: '' }
+  rejected: { label: 'Отклонён', variant: 'destructive' as const, className: '' },
+  recommended: { label: 'Рекомендован', variant: 'success' as const, className: '' },
+  extended: { label: 'Продлён', variant: 'secondary' as const, className: '' },
+  removed: { label: 'Снят', variant: 'destructive' as const, className: '' },
 };
 
 export const VarietyHeader = ({ name, culture, status }: VarietyHeaderProps) => {
@@ -42,11 +45,7 @@ export const VarietyHeader = ({ name, culture, status }: VarietyHeaderProps) => 
               <FileText className="mr-2 h-4 w-4" />
               Сформировать отчёт
             </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/variety/1/test-results">
-                Ввести результаты
-              </Link>
-            </Button>
+            {/* Кнопка ввода результатов перенесена в блок результатов */}
             <Button variant="outline" size="sm">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Назад к списку
