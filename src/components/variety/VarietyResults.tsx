@@ -31,10 +31,9 @@ interface RegionData {
 
 interface VarietyResultsProps {
   resultsData: RegionData[];
-  varietyId: string;
 }
 
-export const VarietyResults = ({ resultsData, varietyId }: VarietyResultsProps) => {
+export const VarietyResults = ({ resultsData }: VarietyResultsProps) => {
   const currentYear = new Date().getFullYear();
   const hasData = resultsData && resultsData.length > 0;
   const defaultTab = hasData ? resultsData[0]?.region : undefined;
@@ -44,8 +43,8 @@ export const VarietyResults = ({ resultsData, varietyId }: VarietyResultsProps) 
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-xl font-semibold">Результаты испытаний</CardTitle>
         <Button asChild>
-          <Link to={`/variety/${varietyId}/test-results`}>
-            Внести результаты за {currentYear}
+          <Link to="/trials">
+            Открыть список сортоопытов
           </Link>
         </Button>
       </CardHeader>

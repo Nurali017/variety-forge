@@ -8,6 +8,9 @@ import VarietiesList from "./pages/VarietiesList";
 import VarietyCard from "./pages/VarietyCard";
 import TestResultsForm from "./pages/TestResultsForm";
 import CreateVariety from "./pages/CreateVariety";
+import TrialsList from "./pages/TrialsList";
+import CreateTrial from "./pages/CreateTrial";
+import TrialEntry from "./pages/TrialEntry";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

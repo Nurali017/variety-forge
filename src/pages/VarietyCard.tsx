@@ -100,7 +100,7 @@ const VarietyCard = () => {
             <VarietyDocuments documents={varietyData.documents} />
           </div>
           <div className="lg:col-span-2">
-            <VarietyResults resultsData={varietyData.results} varietyId="3" />
+            <VarietyResults resultsData={varietyData.results} />
           </div>
         </div>
       </div>
