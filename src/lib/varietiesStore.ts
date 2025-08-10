@@ -292,3 +292,36 @@ export function regionKeyToLabel(key: string): string {
   };
   return map[key] || key;
 }
+
+export function upsertVarietyYearResults(
+  varietyId: string,
+  regionLabel: string,
+  year: number,
+  summary: string,
+  rows: TestResult[],
+  newStatus?: Status
+): VarietyRecord | undefined {
+  const items = readAll();
+  const idx = items.findIndex(v => v.id === varietyId);
+  if (idx === -1) return undefined;
+
+  const v = items[idx];
+  let region = v.results.find(r => r.region === regionLabel);
+  if (!region) {
+    region = { region: regionLabel, years: [] };
+    v.results.push(region);
+  }
+  const y = region.years.find(y => y.year === year);
+  if (y) {
+    y.summary = summary;
+    y.results = rows;
+  } else {
+    region.years.push({ year, summary, results: rows });
+  }
+
+  if (newStatus) v.status = newStatus;
+
+  items[idx] = v;
+  writeAll(items);
+  return v;
+}

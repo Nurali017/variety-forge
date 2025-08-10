@@ -1,4 +1,4 @@
-import { getVarietyById, VarietyRecord } from '@/lib/varietiesStore';
+import { getVarietyById, VarietyRecord, upsertVarietyYearResults, TestResult as VRTestResult } from '@/lib/varietiesStore';
 
 export interface TrialParticipant {
   id: string; // participant id
@@ -127,6 +127,46 @@ export function saveResults(trial: Trial, values: ResultsMap) {
   const participantIds = new Set(trial.participants.map(p => p.id));
   const others = readResults().filter(r => !participantIds.has(r.participantId));
   writeResults([...others, ...flat]);
+
+  // Sync aggregated results into Variety records for each participant
+  const standard = trial.participants.find(p => p.isStandard);
+  if (!standard) return;
+  const get = (pid: string, key: string) => values[pid]?.[key] ?? '';
+  const parse = (s: string) => {
+    const n = Number((s || '').toString().replace(',', '.'));
+    return Number.isFinite(n) ? n : undefined;
+  };
+  const sVals = [parse(get(standard.id, 'yield_plot1')), parse(get(standard.id, 'yield_plot2')), parse(get(standard.id, 'yield_plot3')), parse(get(standard.id, 'yield_plot4'))];
+  const sArr = sVals.filter((v): v is number => typeof v === 'number');
+  const sAvg = sArr.length === 4 ? sArr.reduce((a,b)=>a+b,0)/4 : undefined;
+
+  for (const p of trial.participants) {
+    const v1 = parse(get(p.id, 'yield_plot1'));
+    const v2 = parse(get(p.id, 'yield_plot2'));
+    const v3 = parse(get(p.id, 'yield_plot3'));
+    const v4 = parse(get(p.id, 'yield_plot4'));
+    const arr = [v1, v2, v3, v4].filter((v): v is number => typeof v === 'number');
+    if (arr.length !== 4 || sAvg == null) continue;
+
+    const mean = arr.reduce((a,b)=>a+b,0)/4;
+    const diff = mean - sAvg;
+    const improvementPct = sAvg > 0 ? ((mean - sAvg) / sAvg) * 100 : 0;
+    const summary = `Превышение над стандартом: ${improvementPct >= 0 ? '+' : ''}${improvementPct.toFixed(1)}%`;
+
+    const rows: VRTestResult[] = [
+      {
+        indicator: 'Урожайность, ц/га',
+        varietyValue: mean.toFixed(2),
+        standardValue: sAvg.toFixed(2),
+        deviation: `${diff >= 0 ? '+' : ''}${diff.toFixed(2)}`,
+        isPositive: diff >= 0,
+      },
+    ];
+
+    const newStatus = improvementPct >= 8 ? 'recommended' : improvementPct <= -5 ? 'removed' : 'extended';
+
+    upsertVarietyYearResults(p.varietyId, trial.locationId, trial.year, summary, rows, newStatus as any);
+  }
 }
 
 export function getResultsForTrial(trial: Trial): TrialResult[] {
