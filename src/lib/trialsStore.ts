@@ -129,6 +129,11 @@ export function saveResults(trial: Trial, values: ResultsMap) {
   writeResults([...others, ...flat]);
 }
 
+export function getResultsForTrial(trial: Trial): TrialResult[] {
+  const participantIds = new Set(trial.participants.map(p => p.id));
+  return readResults().filter(r => participantIds.has(r.participantId));
+}
+
 // Helpers for calculations
 export function avg(vals: number[]): number | undefined {
   const arr = vals.filter(v => Number.isFinite(v));

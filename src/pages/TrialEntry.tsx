@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrialHeader } from '@/components/trials/TrialHeader';
 import { TrialEntryTable, ValuesMap } from '@/components/trials/TrialEntryTable';
-import { getTrialById, saveResults, Trial } from '@/lib/trialsStore';
+import { getTrialById, saveResults, Trial, getResultsForTrial } from '@/lib/trialsStore';
 import { getIndicatorGroups } from '@/lib/trialsConfig';
 
 const TrialEntry = () => {
@@ -21,10 +21,14 @@ const TrialEntry = () => {
 
   useEffect(() => {
     if (!trial) return;
-    // initialize empty values for participants
     const initial: ValuesMap = {};
     for (const p of trial.participants) {
       initial[p.id] = {};
+    }
+    const existing = getResultsForTrial(trial);
+    for (const r of existing) {
+      if (!initial[r.participantId]) initial[r.participantId] = {};
+      initial[r.participantId][r.key] = r.value;
     }
     setValues(initial);
   }, [trial]);
