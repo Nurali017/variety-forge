@@ -27,6 +27,10 @@ const App = () => (
           <Route path="/variety/:id/test-results" element={<TestResultsForm />} />
           <Route path="/varieties/new" element={<CreateVariety />} />
           <Route path="/index" element={<Index />} />
+          {/* Trials routes */}
+          <Route path="/trials" element={<TrialsList />} />
+          <Route path="/trials/new" element={<CreateTrial />} />
+          <Route path="/trials/:id/entry" element={<TrialEntry />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

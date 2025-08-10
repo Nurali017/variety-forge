@@ -12,6 +12,9 @@ const Index = () => {
             <Link to="/">Список сортов</Link>
           </Button>
           <Button variant="outline" asChild>
+            <Link to="/trials">Список сортоопытов</Link>
+          </Button>
+          <Button variant="outline" asChild>
             <Link to="/variety/1">Пример карточки сорта</Link>
           </Button>
         </div>
