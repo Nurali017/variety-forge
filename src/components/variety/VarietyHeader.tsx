@@ -46,9 +46,8 @@ export const VarietyHeader = ({ name, culture, status }: VarietyHeaderProps) => 
               Сформировать отчёт
             </Button>
             {/* Кнопка ввода результатов перенесена в блок результатов */}
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Назад к списку
+            <Button          
+              <Link className="underline" to="/">Вернуться к списку сортов</Link>
             </Button>
           </div>
         </div>
