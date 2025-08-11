@@ -8,11 +8,17 @@ export interface TrialParticipant {
   isStandard: boolean;
 }
 
+export type TrialStatus = 'draft' | 'completed';
+
 export interface Trial {
   id: string;
   year: number;
   cultureId: string;
   locationId: string;
+  predecessor: string;
+  background: string;
+  technology: string;
+  status: TrialStatus;
   participants: TrialParticipant[];
 }
 
@@ -34,19 +40,54 @@ function readTrials(): Trial[] {
   try {
     const raw = localStorage.getItem(LS_TRIALS);
     if (raw) {
-      const parsed = JSON.parse(raw) as Trial[];
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      const parsed = JSON.parse(raw) as any[];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // normalize to current shape
+        return parsed.map((t: any) => ({
+          id: t.id,
+          year: t.year,
+          cultureId: t.cultureId,
+          locationId: t.locationId,
+          predecessor: t.predecessor ?? '',
+          background: t.background ?? '',
+          technology: t.technology ?? '',
+          status: (t.status as TrialStatus) ?? 'draft',
+          participants: t.participants ?? [],
+        }));
+      }
     }
     // Seed if empty
     if (Array.isArray(seedTrials) && seedTrials.length > 0) {
-      localStorage.setItem(LS_TRIALS, JSON.stringify(seedTrials));
-      return seedTrials as unknown as Trial[];
+      const normalized = (seedTrials as any[]).map((t: any) => ({
+        id: t.id,
+        year: t.year,
+        cultureId: t.cultureId,
+        locationId: t.locationId,
+        predecessor: t.predecessor ?? '',
+        background: t.background ?? '',
+        technology: t.technology ?? '',
+        status: (t.status as TrialStatus) ?? 'draft',
+        participants: t.participants ?? [],
+      }));
+      localStorage.setItem(LS_TRIALS, JSON.stringify(normalized));
+      return normalized as Trial[];
     }
     return [];
   } catch {
     if (Array.isArray(seedTrials) && seedTrials.length > 0) {
-      localStorage.setItem(LS_TRIALS, JSON.stringify(seedTrials));
-      return seedTrials as unknown as Trial[];
+      const normalized = (seedTrials as any[]).map((t: any) => ({
+        id: t.id,
+        year: t.year,
+        cultureId: t.cultureId,
+        locationId: t.locationId,
+        predecessor: t.predecessor ?? '',
+        background: t.background ?? '',
+        technology: t.technology ?? '',
+        status: (t.status as TrialStatus) ?? 'draft',
+        participants: t.participants ?? [],
+      }));
+      localStorage.setItem(LS_TRIALS, JSON.stringify(normalized));
+      return normalized as Trial[];
     }
     return [];
   }
