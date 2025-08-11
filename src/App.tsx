@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import VarietiesList from "./pages/VarietiesList";
 import VarietyCard from "./pages/VarietyCard";
+import VarietyCardPage from "./pages/VarietyCardPage";
 import TestResultsForm from "./pages/TestResultsForm";
 import CreateVariety from "./pages/CreateVariety";
 import TrialsList from "./pages/TrialsList";
@@ -24,6 +25,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<VarietiesList />} />
           <Route path="/variety/:id" element={<VarietyCard />} />
+          <Route path="/varieties/:varietyId" element={<VarietyCardPage />} />
           <Route path="/variety/:id/test-results" element={<TestResultsForm />} />
           <Route path="/varieties/new" element={<CreateVariety />} />
           <Route path="/index" element={<Index />} />
