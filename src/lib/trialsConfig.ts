@@ -29,29 +29,38 @@ export const cultureLabels: Record<string, string> = {
 };
 
 export function getIndicatorGroups(cultureId: string): IndicatorGroup[] {
-  // Унифицированная модель: только вводимые пользователем поля (без вычислений)
+  // Гибридная модель для пшеницы: первичные поля (input) + расчётные (computed)
   if (cultureId === 'wheat') {
     const groups: IndicatorGroup[] = [
       {
-        name: '1. Урожайность и структура',
+        name: 'Первичные данные по урожайности',
         indicators: [
-          { key: 'yield_avg', label: 'Урожайность', unit: 'ц/га', type: 'input', group: 'yield' },
-          { key: 'over_std_abs', label: 'Превышение над стандартом', unit: 'ц/га', type: 'input', group: 'yield' },
-          { key: 'over_std_pct', label: 'Превышение над стандартом', unit: '%', type: 'input', group: 'yield' },
-          { key: 'thousand_grain_weight', label: 'Масса 1000 зерен', unit: 'г', type: 'input', group: 'yield' },
-          { key: 'grain_nature', label: 'Натура зерна', unit: 'г/л', type: 'input', group: 'yield' },
+          { key: 'yield_plot1', label: 'Урожайность, делянка 1', unit: 'ц/га', type: 'input', group: 'yield' },
+          { key: 'yield_plot2', label: 'Урожайность, делянка 2', unit: 'ц/га', type: 'input', group: 'yield' },
+          { key: 'yield_plot3', label: 'Урожайность, делянка 3', unit: 'ц/га', type: 'input', group: 'yield' },
+          { key: 'yield_plot4', label: 'Урожайность, делянка 4', unit: 'ц/га', type: 'input', group: 'yield' },
         ],
       },
       {
-        name: '2. Вегетационные показатели',
+        name: 'Расчетные показатели урожайности',
         indicators: [
-          { key: 'vegetation_period', label: 'Вегетационный период', unit: 'дней', type: 'input', group: 'veg' },
-          { key: 'plant_height', label: 'Высота растений', unit: 'см', type: 'input', group: 'veg' },
-          { key: 'preharvest_moisture', label: 'Предуборочная влажность', unit: '%', type: 'input', group: 'veg' },
+          { key: 'yield_avg', label: 'Средняя урожайность', unit: 'ц/га', type: 'computed', group: 'yield_calc' },
+          { key: 'over_std_abs', label: 'Превышение над стандартом', unit: 'ц/га', type: 'computed', group: 'yield_calc' },
+          { key: 'over_std_pct', label: 'Превышение над стандартом', unit: '%', type: 'computed', group: 'yield_calc' },
         ],
       },
       {
-        name: '3. Устойчивость (баллы)',
+        name: 'Первичные агрономические данные',
+        indicators: [
+          { key: 'thousand_grain_weight', label: 'Масса 1000 зерен', unit: 'г', type: 'input', group: 'agro' },
+          { key: 'grain_nature', label: 'Натура зерна', unit: 'г/л', type: 'input', group: 'agro' },
+          { key: 'vegetation_period', label: 'Вегетационный период', unit: 'дней', type: 'input', group: 'agro' },
+          { key: 'plant_height', label: 'Высота растений', unit: 'см', type: 'input', group: 'agro' },
+          { key: 'preharvest_moisture', label: 'Предуборочная влажность', unit: '%', type: 'input', group: 'agro' },
+        ],
+      },
+      {
+        name: 'Устойчивость (баллы)',
         indicators: [
           { key: 'lodging_resistance', label: 'Устойчивость к полеганию', unit: 'балл', type: 'input', group: 'res' },
           { key: 'shattering_resistance', label: 'Устойчивость к осыпанию', unit: 'балл', type: 'input', group: 'res' },
@@ -59,7 +68,7 @@ export function getIndicatorGroups(cultureId: string): IndicatorGroup[] {
         ],
       },
       {
-        name: '4. Показатели качества зерна',
+        name: 'Показатели качества зерна',
         indicators: [
           { key: 'protein_content', label: 'Содержание белка', unit: '%', type: 'input', group: 'quality' },
           { key: 'raw_gluten', label: 'Содержание сырой клейковины', unit: '%', type: 'input', group: 'quality' },
@@ -69,7 +78,7 @@ export function getIndicatorGroups(cultureId: string): IndicatorGroup[] {
         ],
       },
       {
-        name: '5. Устойчивость к болезням',
+        name: 'Устойчивость к болезням',
         indicators: [
           { key: 'smut', label: 'Пыльная головня', unit: 'балл', type: 'input', group: 'disease' },
           { key: 'stem_rust', label: 'Стеблевая ржавчина', unit: 'балл', type: 'input', group: 'disease' },
@@ -77,16 +86,24 @@ export function getIndicatorGroups(cultureId: string): IndicatorGroup[] {
         ],
       },
       {
-        name: '6. Итоговая оценка',
+        name: 'Итоговая оценка',
         indicators: [
           { key: 'final_score', label: 'Общая оценка сорта', unit: 'балл', type: 'input', group: 'final' },
+        ],
+      },
+      {
+        name: 'Статистика опыта',
+        indicators: [
+          { key: 'sx', label: 'Ошибка опыта (Sx)', type: 'computed', group: 'stats' },
+          { key: 'p_accuracy', label: 'Точность опыта (P, %)', unit: '%', type: 'computed', group: 'stats' },
+          { key: 'lsd', label: 'НСР', type: 'computed', group: 'stats' },
         ],
       },
     ];
     return groups;
   }
 
-  // Прочие культуры: базовый набор вводимых показателей без вычислений
+  // Прочие культуры: базовый набор полей
   const base: IndicatorGroup[] = [
     {
       name: '1. Урожайность',

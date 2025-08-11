@@ -36,6 +36,7 @@ const TrialsList = () => {
                     <TableHead>Культура</TableHead>
                     <TableHead>Сортоучасток</TableHead>
                     <TableHead>Участников</TableHead>
+                    <TableHead>Статус</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -51,6 +52,7 @@ const TrialsList = () => {
                         <TableCell>{cultureLabels[t.cultureId] ?? t.cultureId}</TableCell>
                         <TableCell>{t.locationId}</TableCell>
                         <TableCell>{t.participants.length}</TableCell>
+                        <TableCell>{t.status === 'completed' ? 'Завершен' : 'Черновик'}</TableCell>
                         <TableCell className="text-right">
                           <Button variant="outline" size="sm" asChild>
                             <Link to={`/trials/${t.id}/entry`}>Открыть</Link>

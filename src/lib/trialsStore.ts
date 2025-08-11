@@ -1,5 +1,6 @@
 import { getVarietyById, VarietyRecord, upsertVarietyYearResults, TestResult as VRTestResult } from '@/lib/varietiesStore';
 import { seedTrials, seedTrialResults } from '@/lib/seed';
+import { getIndicatorGroups } from '@/lib/trialsConfig';
 export interface TrialParticipant {
   id: string; // participant id
   trialId: string;
@@ -186,11 +187,20 @@ export function getResultsByTrialId(trialId: string): TrialResult[] {
 export type ResultsMap = Record<string, Record<string, string>>; // participantId -> key -> value
 
 export function saveResults(trial: Trial, values: ResultsMap) {
+  // persist only input indicators
+  const inputKeysSet = new Set<string>();
+  try {
+    const groups = getIndicatorGroups(trial.cultureId);
+    groups.forEach(g => g.indicators.forEach(ind => { if (ind.type === 'input') inputKeysSet.add(ind.key); }));
+  } catch {}
+
   const flat: TrialResult[] = [];
   for (const pid of Object.keys(values)) {
     const byKey = values[pid];
     for (const key of Object.keys(byKey)) {
-      flat.push({ participantId: pid, key, value: byKey[key] });
+      if (inputKeysSet.size === 0 || inputKeysSet.has(key)) {
+        flat.push({ participantId: pid, key, value: byKey[key] });
+      }
     }
   }
 
@@ -198,6 +208,21 @@ export function saveResults(trial: Trial, values: ResultsMap) {
   const participantIds = new Set(trial.participants.map(p => p.id));
   const others = readResults().filter(r => !participantIds.has(r.participantId));
   writeResults([...others, ...flat]);
+
+  // Update trial status
+  let allFilled = false;
+  try {
+    const groups = getIndicatorGroups(trial.cultureId);
+    const inputKeys = groups.flatMap(g => g.indicators).filter(i => i.type === 'input').map(i => i.key);
+    allFilled = trial.participants.every(p => inputKeys.every(k => (values[p.id]?.[k] ?? '').toString().length > 0));
+  } catch {}
+
+  const trials = readTrials();
+  const idx = trials.findIndex(t => t.id === trial.id);
+  if (idx >= 0) {
+    trials[idx] = { ...trials[idx], status: allFilled ? 'completed' : 'draft' };
+    writeTrials(trials);
+  }
 
   // Sync aggregated results into Variety records for each participant
   const standard = trial.participants.find(p => p.isStandard);

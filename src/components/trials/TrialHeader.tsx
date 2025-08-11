@@ -6,9 +6,12 @@ interface TrialHeaderProps {
   cultureId: string;
   year: number;
   locationId: string;
+  predecessor?: string;
+  background?: string;
+  technology?: string;
 }
 
-export const TrialHeader = ({ cultureId, year, locationId }: TrialHeaderProps) => {
+export const TrialHeader = ({ cultureId, year, locationId, predecessor, background, technology }: TrialHeaderProps) => {
   const culture = cultureLabels[cultureId] ?? cultureId;
   return (
     <Card>
@@ -16,6 +19,9 @@ export const TrialHeader = ({ cultureId, year, locationId }: TrialHeaderProps) =
         <Badge variant="secondary">Культура: {culture}</Badge>
         <Badge variant="secondary">Год: {year}</Badge>
         <Badge variant="secondary">Сортоучасток: {locationId}</Badge>
+        {predecessor ? <Badge variant="secondary">Предшественник: {predecessor}</Badge> : null}
+        {background ? <Badge variant="secondary">Фон: {background}</Badge> : null}
+        {technology ? <Badge variant="secondary">Технология: {technology}</Badge> : null}
       </CardContent>
     </Card>
   );

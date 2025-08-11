@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrialHeader } from '@/components/trials/TrialHeader';
@@ -10,6 +10,7 @@ import { getIndicatorGroups } from '@/lib/trialsConfig';
 const TrialEntry = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const trial = useMemo<Trial | undefined>(() => id ? getTrialById(id) : undefined, [id]);
 
   const [values, setValues] = useState<ValuesMap>({});
@@ -70,7 +71,7 @@ const TrialEntry = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-6 space-y-6">
-        <TrialHeader cultureId={trial.cultureId} year={trial.year} locationId={trial.locationId} />
+        <TrialHeader cultureId={trial.cultureId} year={trial.year} locationId={trial.locationId} predecessor={trial.predecessor} background={trial.background} technology={trial.technology} />
         <Card>
           <CardHeader>
             <CardTitle className="text-xl">Ввод данных сортоопыта</CardTitle>
