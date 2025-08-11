@@ -21,7 +21,7 @@ export function getMatchingTrials(params: ReportParams): Trial[] {
   return getTrials().filter((t) => {
     if (t.cultureId !== params.cultureId) return false;
     if (!yearsSet.has(t.year)) return false;
-    if (params.region && getRegionBySite(t.locationId) !== params.region) return false;
+    // region filter disabled: include all regions
     if (params.predecessor && (t.predecessor || "") !== params.predecessor) return false;
     return true;
   });

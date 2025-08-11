@@ -22,7 +22,7 @@ function setMeta(tag: string, attrs: Record<string, string>) {
 const ReportsPreview = () => {
   // Temporary params for testing
   const params: ReportParams = {
-    region: "Акмолинская область",
+    region: "",
     years: [2022, 2023, 2024],
     cultureId: "wheat",
   };
@@ -30,9 +30,10 @@ const ReportsPreview = () => {
   const data = useMemo(() => buildReportData(params), [params]);
 
   useEffect(() => {
-    const title = `Итоговый отчет — Пшеница, ${params.region}, ${params.years[0]}–${params.years[params.years.length - 1]}`;
+    const regionLabel = params.region || "Все регионы";
+    const title = `Итоговый отчет — Пшеница, ${regionLabel}, ${params.years[0]}–${params.years[params.years.length - 1]}`;
     document.title = title;
-    setMeta("meta", { name: "description", content: `Сводный многолетний отчет по культуре Пшеница для региона ${params.region}.` });
+    setMeta("meta", { name: "description", content: `Сводный многолетний отчет по культуре Пшеница для ${regionLabel}.` });
     setMeta("link", { rel: "canonical", href: `${window.location.origin}/reports/preview` });
   }, [params]);
 
@@ -40,7 +41,7 @@ const ReportsPreview = () => {
     <main className="container mx-auto p-4 space-y-6">
       <header>
         <h1 className="text-2xl font-semibold">Итоговый отчет — Пшеница</h1>
-        <p className="text-sm text-muted-foreground">{params.region} • {params.years[0]}–{params.years[params.years.length - 1]}</p>
+        <p className="text-sm text-muted-foreground">{params.region || 'Все регионы'} • {params.years[0]}–{params.years[params.years.length - 1]}</p>
       </header>
 
       {data.regions.map((region) => (
