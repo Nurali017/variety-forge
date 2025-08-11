@@ -4,8 +4,10 @@ import { Separator } from "@/components/ui/separator";
 import { buildReportData } from "@/lib/reports/aggregation";
 import { ReportParams } from "@/lib/reports/types";
 import { ReportGroupTable } from "@/components/reports/ReportGroupTable";
-import { getZoneBySite } from "@/lib/locations";
+import { getRegionName, getOblastByRegion } from "@/lib/locations";
 import { getTrials } from "@/lib/trialsStore";
+import {Button} from "@/components/ui/button.tsx";
+import {Link} from "react-router-dom";
 
 function setMeta(tag: string, attrs: Record<string, string>) {
   let el = document.querySelector(`${tag}${attrs.name ? `[name=\"${attrs.name}\"]` : ""}${attrs.rel ? `[rel=\"${attrs.rel}\"]` : ""}`) as HTMLMetaElement | HTMLLinkElement | null;
@@ -40,6 +42,7 @@ const ReportsPreview = () => {
     const regionLabel = params.region || "Все регионы";
     const title = `Итоговый отчет — Пшеница, ${regionLabel}, ${params.years[0]}–${params.years[params.years.length - 1]}`;
     document.title = title;
+
     setMeta("meta", { name: "description", content: `Сводный многолетний отчет по культуре Пшеница для ${regionLabel}.` });
     setMeta("link", { rel: "canonical", href: `${window.location.origin}/reports/preview` });
   }, [params]);
@@ -47,12 +50,17 @@ const ReportsPreview = () => {
   return (
     <main className="container mx-auto p-4 space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold">Итоговый отчет — Пшеница</h1>
+        <h2 className="text-2xl font-semibold">Итоговый отчет — Пшеница</h2>
         <p className="text-sm text-muted-foreground">{params.region || 'Все регионы'} • {params.years[0]}–{params.years[params.years.length - 1]}</p>
+        <nav className="hidden md:flex items-center gap-3">
+          <Button variant="ghost" asChild>
+            <Link to="/">Назад</Link>
+          </Button>
+        </nav>
       </header>
 
       {data.regions.map((region) => (
-        <section key={region.region} className="space-y-4">
+          <section key={region.region} className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-xl font-semibold">{region.region}</CardTitle>
@@ -66,7 +74,7 @@ const ReportsPreview = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <h2 className="text-lg font-medium">Сортоучасток: {site.siteName}</h2>
-                        <p className="text-xs text-muted-foreground">Зона: {getZoneBySite(site.siteName) || '—'}</p>
+                        <p className="text-xs text-muted-foreground">Регион: {getRegionName(site.siteName)} • Область: {getOblastByRegion(site.siteName)?.name || '—'}</p>
                       </div>
                     </div>
                     <Separator />

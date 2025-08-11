@@ -19,7 +19,7 @@ interface Variety {
   culture: string;
   applicant: string;
   submissionDate: string;
-  status: 'testing' | 'approved' | 'rejected' | 'recommended' | 'extended' | 'removed';
+  status: 'testing' | 'approved' | 'rejected' | 'recommended_to_remove' | 'recommended_to_extend' | 'removed' | 'submitted' | 'mixed';
 }
 
 interface FilterState {
@@ -38,12 +38,14 @@ type SortField = keyof Variety;
 type SortDirection = 'asc' | 'desc';
 
 const statusConfig = {
+  submitted: { label: 'Заявлен к испытанию', variant: 'secondary' as const, className: '' },
   testing: { label: 'На испытании', variant: 'secondary' as const, className: 'bg-processing text-processing-foreground hover:bg-processing/90' },
-  approved: { label: 'Включён в реестр', variant: 'success' as const, className: '' },
+  approved: { label: 'Рекомендован к включёние в реестр', variant: 'success' as const, className: '' },
   rejected: { label: 'Отклонён', variant: 'destructive' as const, className: '' },
-  recommended: { label: 'Рекомендован', variant: 'success' as const, className: '' },
-  extended: { label: 'Продлён', variant: 'secondary' as const, className: '' },
-  removed: { label: 'Снят', variant: 'destructive' as const, className: '' },
+  recommended_to_remove: { label: 'Рекомендован к снятию', variant: 'destructive' as const, className: '' },
+  recommended_to_extend: { label: 'Рекомендован к продлению', variant: 'success' as const, className: '' },
+  removed: { label: 'Рекомендован к снятию', variant: 'destructive' as const, className: '' },
+  mixed: { label: 'Разные статусы', variant: 'outline' as const, className: '' },
 };
 
 export const VarietiesTable = ({ varieties, filters }: VarietiesTableProps) => {
@@ -133,7 +135,7 @@ export const VarietiesTable = ({ varieties, filters }: VarietiesTableProps) => {
             </TableHeader>
             <TableBody>
               {paginatedVarieties.map((variety, index) => {
-                const statusInfo = statusConfig[variety.status];
+                const statusInfo = statusConfig[variety.status] || statusConfig.testing; // Fallback to testing if status not found
                 const rowNumber = (currentPage - 1) * itemsPerPage + index + 1;
                 
                 return (

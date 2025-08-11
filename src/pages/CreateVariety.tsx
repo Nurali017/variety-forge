@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch"; // Импортируем Switch
 import { MainToolbar } from "@/components/varieties/MainToolbar";
 import { FormActions } from "@/components/forms/FormActions";
-import { createVariety, DocumentItem } from "@/lib/varietiesStore";
+import { OblastSelector } from "@/components/forms/OblastSelector";
+import { DocumentUpload } from "@/components/forms/DocumentUpload";
+import { addVariety, DocumentItem } from "@/lib/varietiesStore";
 import { useToast } from "@/hooks/use-toast";
 
 const cultureOptions = [
@@ -19,19 +21,16 @@ const cultureOptions = [
   { code: 'sunflower' as const, label: 'Подсолнечник', group: 'Технические' },
 ];
 
-const regionOptions = [
-  'Акмолинская область',
-  'Костанайская область',
-  'Северо-Казахстанская область',
-  'Алматинская область',
-];
+
 
 const maturityOptions = [
-  'D3 - Раннеспелая группа',
-  'D4 - Среднеранняя группа',
-  'D5 - Среднеспелая группа',
-  'D6 - Среднепоздняя группа',
-  'D7 - Позднеспелая группа',
+  'D01 - Очень ранний',
+  'D02 - Ранний',
+  'D03 - Среднеранний',
+  'D04 - Средний',
+  'D05 - Среднепоздний',
+  'D06 - Поздний',
+  'D07 - Очень поздний',
 ];
 
 const formatDate = (d: Date) => {
@@ -46,42 +45,45 @@ const CreateVariety = () => {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
+  // Состояния для всех полей формы
   const [name, setName] = useState("");
-  const [cultureCode, setCultureCode] = useState<typeof cultureOptions[number]['code'] | "">("");
+  const [cultureCode, setCultureCode] = useState("");
   const [maturityGroup, setMaturityGroup] = useState("");
   const [applicant, setApplicant] = useState("");
   const [inn, setInn] = useState("");
-  const [targetRegions, setTargetRegions] = useState<string[]>([]);
-  const [notes, setNotes] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [targetOblasts, setTargetOblasts] = useState<string[]>([]);
+  const [gssCheck, setGssCheck] = useState(false);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
 
   const submissionDate = formatDate(new Date());
 
-  const isValid = !!name && !!cultureCode && !!maturityGroup && !!applicant && targetRegions.length > 0;
+  const isValid =
+    !!name &&
+    !!cultureCode &&
+    !!maturityGroup &&
+    !!applicant &&
+    !!inn &&
+    !!contactName &&
+    !!contactPhone &&
+    !!contactEmail &&
+    targetOblasts.length > 0;
 
-  const handleRegionToggle = (region: string, checked: boolean) => {
-    setTargetRegions((prev) => (
-      checked ? [...prev, region] : prev.filter((r) => r !== region)
-    ));
-  };
 
-  const handleFiles = (files: FileList | null) => {
-    if (!files) return;
-    const next: DocumentItem[] = Array.from(files).map((f, idx) => {
-      const ext = f.name.split('.').pop()?.toLowerCase();
-      const type: DocumentItem['type'] = ext === 'pdf' ? 'pdf' : ext === 'docx' ? 'docx' : 'other';
-      const sizeMb = (f.size / (1024 * 1024)).toFixed(1);
-      return { id: `${Date.now()}_${idx}`, name: f.name, type, size: `${sizeMb} МБ` };
-    });
-    setDocuments((prev) => [...prev, ...next]);
-  };
+
+
 
   const handleSave = async () => {
-    if (!isValid) return;
+    if (!isValid) {
+      toast({ title: 'Заполните все обязательные поля', variant: 'destructive' });
+      return;
+    }
     try {
       setIsSaving(true);
       const culture = cultureOptions.find((c) => c.code === cultureCode)!;
-      const record = createVariety({
+      const record = addVariety({
         name,
         cultureCode: culture.code,
         cultureLabel: culture.label,
@@ -89,8 +91,14 @@ const CreateVariety = () => {
         maturityGroup,
         applicant,
         inn,
+        contactPerson: {
+          name: contactName,
+          phone: contactPhone,
+          email: contactEmail,
+        },
         submissionDate,
-        targetRegions,
+        targetOblasts,
+        gssCheck,
         documents,
       });
 
@@ -113,83 +121,82 @@ const CreateVariety = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Добавление нового сорта</CardTitle>
+            <CardDescription>Заполните все обязательные поля, отмеченные *</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="space-y-8">
+            {/* Основная информация */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Наименование сорта *</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Например: Пшеница озимая 'Скипетр'" />
+                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
-
               <div className="space-y-2">
                 <Label>Культура *</Label>
-                <Select value={cultureCode} onValueChange={(v) => setCultureCode(v as any)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Выберите культуру" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cultureOptions.map((opt) => (
-                      <SelectItem key={opt.code} value={opt.code}>{opt.label}</SelectItem>
-                    ))}
-                  </SelectContent>
+                <Select value={cultureCode} onValueChange={setCultureCode}>
+                  <SelectTrigger><SelectValue placeholder="Выберите культуру" /></SelectTrigger>
+                  <SelectContent>{cultureOptions.map((o) => (<SelectItem key={o.code} value={o.code}>{o.label}</SelectItem>))}</SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
-                <Label>Группа спелости *</Label>
+                <Label>Группа спелости (D-коды) *</Label>
                 <Select value={maturityGroup} onValueChange={setMaturityGroup}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Выберите группу" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {maturityOptions.map((m) => (
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                    ))}
-                  </SelectContent>
+                  <SelectTrigger><SelectValue placeholder="Выберите группу" /></SelectTrigger>
+                  <SelectContent>{maturityOptions.map((m) => (<SelectItem key={m} value={m}>{m}</SelectItem>))}</SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="applicant">Заявитель *</Label>
-                <Input id="applicant" value={applicant} onChange={(e) => setApplicant(e.target.value)} placeholder="Название организации" />
+                <Label htmlFor="applicant">Заявитель (организация) *</Label>
+                <Input id="applicant" value={applicant} onChange={(e) => setApplicant(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="inn">ИНН/БИН *</Label>
+                <Input id="inn" value={inn} onChange={(e) => setInn(e.target.value)} />
+              </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="inn">ИНН/БИН</Label>
-                <Input id="inn" value={inn} onChange={(e) => setInn(e.target.value)} placeholder="Номер" />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Примечание</Label>
-                <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Дополнительная информация (необязательно)" />
-              </div>
-            </div>
-
+            {/* Контактное лицо */}
+            <div className="space-y-4 border-t pt-6">
+               <Label className="text-lg font-medium">Контактное лицо *</Label>
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <Label>Целевые регионы *</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                {regionOptions.map((r) => (
-                  <label key={r} className="flex items-center gap-2 text-sm">
-                    <Checkbox checked={targetRegions.includes(r)} onCheckedChange={(c) => handleRegionToggle(r, Boolean(c))} />
-                    {r}
-                  </label>
-                ))}
+                    <Label htmlFor="contactName">ФИО</Label>
+                    <Input id="contactName" value={contactName} onChange={(e) => setContactName(e.target.value)} />
+            </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactPhone">Телефон</Label>
+                    <Input id="contactPhone" type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
+      </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail">Email</Label>
+                    <Input id="contactEmail" type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
+    </div>
+               </div>
+            </div>
+
+            {/* Регионы и проверка ООС */}
+            <div className="space-y-6 border-t pt-6">
+              <OblastSelector 
+                selectedOblasts={targetOblasts}
+                onOblastsChange={setTargetOblasts}
+              />
+              <div className="space-y-4">
+                 <Label>Проверка на ООС *</Label>
+                 <div className="flex items-center space-x-2">
+                    <Switch id="gssCheck" checked={gssCheck} onCheckedChange={setGssCheck} />
+                    <Label htmlFor="gssCheck">{gssCheck ? "Да" : "Нет"}</Label>
+                 </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="docs">Документы (PDF/DOCX)</Label>
-              <Input id="docs" type="file" multiple accept=".pdf,.doc,.docx" onChange={(e) => handleFiles(e.target.files)} />
-              {documents.length > 0 && (
-                <ul className="text-sm text-muted-foreground list-disc pl-5">
-                  {documents.map((d) => (
-                    <li key={d.id}>{d.name} • {d.size}</li>
-                  ))}
-                </ul>
-              )}
+            {/* Документы */}
+            <div className="border-t pt-6">
+              <DocumentUpload 
+                documents={documents}
+                onDocumentsChange={setDocuments}
+              />
             </div>
 
-            <div className="text-sm text-muted-foreground">Дата подачи: {submissionDate}</div>
+            <div className="text-sm text-muted-foreground pt-6">Дата подачи: {submissionDate}</div>
           </CardContent>
         </Card>
       </div>

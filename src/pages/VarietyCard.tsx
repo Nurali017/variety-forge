@@ -4,12 +4,12 @@ import { VarietyHeader } from "@/components/variety/VarietyHeader";
 import { VarietyInfo } from "@/components/variety/VarietyInfo";
 import { VarietyDocuments } from "@/components/variety/VarietyDocuments";
 import { VarietyResults } from "@/components/variety/VarietyResults";
-import { getVarietyById } from "@/lib/varietiesStore";
+import { getVariety } from "@/lib/varietiesStore";
 
 const VarietyCard = () => {
   const { id } = useParams();
 
-  const variety = useMemo(() => (id ? getVarietyById(id) : undefined), [id]);
+  const variety = useMemo(() => (id ? getVariety(id) : undefined), [id]);
 
   useEffect(() => {
     if (variety) {

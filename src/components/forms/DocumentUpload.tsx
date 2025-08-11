@@ -1,17 +1,15 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { FileText, Upload, X, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { DocumentItem } from "@/lib/varietiesStore";
 
-interface Document {
-  id: string;
-  name: string;
-  type: 'pdf' | 'doc' | 'docx';
-  size?: string;
-}
-
-interface VarietyDocumentsProps {
-  documents: Document[];
+interface DocumentUploadProps {
+  documents: DocumentItem[];
+  onDocumentsChange: (documents: DocumentItem[]) => void;
 }
 
 // Официальный список требуемых документов
@@ -54,10 +52,6 @@ const requiredDocuments = [
   }
 ];
 
-const getFileIcon = (type: string) => {
-  return <FileText className="h-5 w-5 text-muted-foreground" />;
-};
-
 const getStatusIcon = (isUploaded: boolean, isRequired: boolean) => {
   if (isUploaded) {
     return <CheckCircle className="h-5 w-5 text-green-600" />;
@@ -78,7 +72,52 @@ const getStatusBadge = (isUploaded: boolean, isRequired: boolean) => {
   }
 };
 
-export const VarietyDocuments = ({ documents }: VarietyDocumentsProps) => {
+export const DocumentUpload = ({ documents, onDocumentsChange }: DocumentUploadProps) => {
+  const [dragActive, setDragActive] = useState(false);
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+    
+    const newDocuments: DocumentItem[] = Array.from(files).map((file, idx) => {
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      const type: DocumentItem['type'] = ext === 'pdf' ? 'pdf' : ext === 'docx' ? 'docx' : 'other';
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      
+      return {
+        id: `${Date.now()}_${idx}`,
+        name: file.name,
+        type,
+        size: `${sizeMb} МБ`
+      };
+    });
+    
+    onDocumentsChange([...documents, ...newDocuments]);
+  };
+
+  const removeDocument = (id: string) => {
+    onDocumentsChange(documents.filter(doc => doc.id !== id));
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(e.dataTransfer.files);
+    }
+  };
+
   // Создаем карту загруженных документов для быстрого поиска
   const uploadedDocsMap = new Map(documents.map(doc => [doc.name.toLowerCase(), doc]));
 
@@ -90,7 +129,8 @@ export const VarietyDocuments = ({ documents }: VarietyDocumentsProps) => {
           Для подачи заявки на сортоиспытание требуется загрузка следующих документов:
         </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
+        {/* Список требуемых документов */}
         <div className="space-y-4">
           {requiredDocuments.map((doc) => {
             const uploadedDoc = uploadedDocsMap.get(doc.name.toLowerCase());
@@ -108,7 +148,7 @@ export const VarietyDocuments = ({ documents }: VarietyDocumentsProps) => {
                     <p className="text-xs text-muted-foreground">{doc.description}</p>
                     {uploadedDoc && (
                       <div className="flex items-center gap-2 mt-2">
-                        {getFileIcon(uploadedDoc.type)}
+                        <FileText className="h-4 w-4 text-muted-foreground" />
                         <span className="text-xs text-muted-foreground">
                           {uploadedDoc.name} {uploadedDoc.size && `(${uploadedDoc.size})`}
                         </span>
@@ -117,30 +157,76 @@ export const VarietyDocuments = ({ documents }: VarietyDocumentsProps) => {
                   </div>
                 </div>
                 {uploadedDoc && (
-                  <Button variant="ghost" size="sm">
-                    <Download className="h-4 w-4" />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => removeDocument(uploadedDoc.id)}
+                  >
+                    <X className="h-4 w-4" />
                   </Button>
                 )}
               </div>
             );
           })}
         </div>
-        
+
+        {/* Область загрузки файлов */}
+        <div
+          className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+            dragActive 
+              ? 'border-primary bg-primary/5' 
+              : 'border-border hover:border-primary/50'
+          }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <div className="space-y-2">
+            <p className="text-sm font-medium">
+              Перетащите файлы сюда или нажмите для выбора
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Поддерживаются форматы: PDF, DOCX, изображения
+            </p>
+            <Input
+              type="file"
+              multiple
+              onChange={(e) => handleFiles(e.target.files)}
+              className="hidden"
+              id="file-upload"
+            />
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => document.getElementById('file-upload')?.click()}
+            >
+              Выбрать файлы
+            </Button>
+          </div>
+        </div>
+
+        {/* Список загруженных файлов */}
         {documents.length > 0 && (
-          <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-            <h4 className="font-medium mb-2">Загруженные документы ({documents.length})</h4>
+          <div className="space-y-2">
+            <h4 className="font-medium">Загруженные файлы ({documents.length})</h4>
             <div className="space-y-2">
               {documents.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-2 bg-background rounded border">
+                <div key={doc.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2">
-                    {getFileIcon(doc.type)}
+                    <FileText className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{doc.name}</span>
                     {doc.size && (
                       <span className="text-xs text-muted-foreground">({doc.size})</span>
                     )}
                   </div>
-                  <Button variant="ghost" size="sm">
-                    <Download className="h-4 w-4" />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => removeDocument(doc.id)}
+                  >
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               ))}

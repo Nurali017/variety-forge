@@ -39,7 +39,7 @@ export const ResultsTable = ({ results, year, region }: ResultsTableProps) => {
           </TableHeader>
           <TableBody>
             {results.map((result, index) => (
-              <TableRow key={index}>
+              <TableRow key={`${result.indicator}-${index}`}>
                 <TableCell className="font-medium">{result.indicator}</TableCell>
                 <TableCell>{result.varietyValue}</TableCell>
                 <TableCell>{result.standardValue}</TableCell>

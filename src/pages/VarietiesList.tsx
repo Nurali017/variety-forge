@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainToolbar } from "@/components/varieties/MainToolbar";
 import { VarietiesFilter } from "@/components/varieties/VarietiesFilter";
 import { VarietiesTable } from "@/components/varieties/VarietiesTable";
@@ -13,9 +13,6 @@ interface FilterState {
   region: string;
 }
 
-// Убраны статические образцы — показываем только данные из localStorage
-const sampleVarieties: any[] = [];
-
 const VarietiesList = () => {
   const [filters, setFilters] = useState<FilterState>({
     search: "",
@@ -29,15 +26,30 @@ const VarietiesList = () => {
   };
 
   const localVarieties = getVarieties();
-  const mappedLocal = localVarieties.map(v => ({
-    id: v.id,
-    name: v.name,
-    culture: v.cultureGroup,
-    applicant: v.applicant,
-    submissionDate: v.submissionDate,
-    status: v.status as any,
-  }));
+  console.log('Loaded varieties:', localVarieties);
+  
+  const mappedLocal = localVarieties.map(v => {
+    // Определяем отображаемый статус
+    let displayStatus = 'submitted';
+    if (v.oblastStatuses && v.oblastStatuses.length > 0) {
+      const firstStatus = v.oblastStatuses[0].status;
+      const allSameStatus = v.oblastStatuses.every(os => os.status === firstStatus);
+      displayStatus = allSameStatus ? firstStatus : 'mixed';
+    }
+    
+    return {
+      id: v.id,
+      name: v.name,
+      culture: v.cultureGroup,
+      applicant: v.applicant,
+      submissionDate: v.submissionDate,
+      status: displayStatus as any,
+    };
+  });
   const varieties = mappedLocal;
+
+  console.log('Mapped varieties:', varieties);
+  console.log('Variety statuses:', varieties.map(v => ({ name: v.name, status: v.status })));
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,7 +63,19 @@ const VarietiesList = () => {
           </Button>
         </div>
         <VarietiesFilter onFilterChange={handleFilterChange} />
-        <VarietiesTable varieties={varieties} filters={filters} />
+        
+        {varieties.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-lg font-medium text-muted-foreground mb-2">
+              Сорта не найдены
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Добавьте первый сорт, чтобы начать работу
+            </p>
+          </div>
+        ) : (
+          <VarietiesTable varieties={varieties} filters={filters} />
+        )}
       </div>
     </div>
   );

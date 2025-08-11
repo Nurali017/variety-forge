@@ -18,6 +18,9 @@ export const MainToolbar = () => {
               <Button variant="ghost" asChild>
                 <Link to="/trials">Сортоопыты</Link>
               </Button>
+              <Button variant="ghost" asChild>
+                <Link to="/reports/preview">Отчет</Link>
+              </Button>
             </nav>
           </div>
 

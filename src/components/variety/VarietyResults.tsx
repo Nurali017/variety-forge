@@ -36,7 +36,7 @@ interface VarietyResultsProps {
 export const VarietyResults = ({ resultsData }: VarietyResultsProps) => {
   const currentYear = new Date().getFullYear();
   const hasData = resultsData && resultsData.length > 0;
-  const defaultTab = hasData ? resultsData[0]?.region : undefined;
+  const defaultTab = hasData && resultsData[0]?.region ? resultsData[0].region : undefined;
 
   return (
     <Card>
@@ -54,16 +54,16 @@ export const VarietyResults = ({ resultsData }: VarietyResultsProps) => {
         ) : (
           <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              {resultsData.map((regionData) => (
-                <TabsTrigger key={regionData.region} value={regionData.region}>
+              {resultsData.map((regionData, index) => (
+                <TabsTrigger key={`${regionData.region}-${index}`} value={regionData.region}>
                   {regionData.region}
                 </TabsTrigger>
               ))}
             </TabsList>
-            {resultsData.map((regionData) => (
-              <TabsContent key={regionData.region} value={regionData.region}>
+            {resultsData.map((regionData, index) => (
+              <TabsContent key={`${regionData.region}-content-${index}`} value={regionData.region}>
                 <Accordion type="single" collapsible className="w-full">
-                  {regionData.years.map((yearData) => (
+                  {(regionData.years || []).map((yearData) => (
                     <AccordionItem key={yearData.year} value={`${regionData.region}-${yearData.year}`}>
                       <AccordionTrigger className="text-left">
                         <div>

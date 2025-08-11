@@ -72,7 +72,20 @@ const TrialEntry = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-6 space-y-6">
-        <TrialHeader cultureId={trial.cultureId} year={trial.year} locationId={trial.locationId} predecessor={trial.predecessor} background={trial.background} technology={trial.technology} />
+        <TrialHeader 
+          cultureId={trial.cultureId} 
+          year={trial.year} 
+          trialType={trial.trialType}
+          locationId={trial.locationId} 
+          predecessor={trial.predecessor} 
+          agronomicBackground={trial.agronomicBackground} 
+          growingConditions={trial.growingConditions} 
+          cultivationTechnology={trial.cultivationTechnology} 
+          growingMethod={trial.growingMethod} 
+          harvestTiming={trial.harvestTiming} 
+          harvestDate={trial.harvestDate} 
+          additionalInfo={trial.additionalInfo} 
+        />
         <Card>
           <CardHeader>
             <CardTitle className="text-xl">Ввод данных сортоопыта</CardTitle>

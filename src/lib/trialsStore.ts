@@ -1,4 +1,4 @@
-import { getVarietyById, VarietyRecord, upsertVarietyYearResults, TestResult as VRTestResult } from '@/lib/varietiesStore';
+import { getVariety, VarietyRecord, upsertVarietyYearResults, TestResult as VRTestResult } from '@/lib/varietiesStore';
 import { seedTrials, seedTrialResults } from '@/lib/seed';
 import { getIndicatorGroups } from '@/lib/trialsConfig';
 export interface TrialParticipant {
@@ -14,11 +14,17 @@ export type TrialStatus = 'draft' | 'completed';
 export interface Trial {
   id: string;
   year: number;
+  trialType: string;
   cultureId: string;
   locationId: string;
   predecessor: string;
-  background: string;
-  technology: string;
+  agronomicBackground: string;
+  growingConditions: string;
+  cultivationTechnology: string;
+  growingMethod: string;
+  harvestTiming: string;
+  harvestDate: string;
+  additionalInfo: string;
   status: TrialStatus;
   participants: TrialParticipant[];
 }
@@ -47,11 +53,17 @@ function readTrials(): Trial[] {
         return parsed.map((t: any) => ({
           id: t.id,
           year: t.year,
+          trialType: t.trialType ?? 'competitive',
           cultureId: t.cultureId,
           locationId: t.locationId,
           predecessor: t.predecessor ?? '',
-          background: t.background ?? '',
-          technology: t.technology ?? '',
+          agronomicBackground: t.agronomicBackground ?? 'favorable',
+          growingConditions: t.growingConditions ?? 'rainfed',
+          cultivationTechnology: t.cultivationTechnology ?? 'traditional',
+          growingMethod: t.growingMethod ?? 'soil_traditional',
+          harvestTiming: t.harvestTiming ?? 'optimal',
+          harvestDate: t.harvestDate ?? '',
+          additionalInfo: t.additionalInfo ?? '',
           status: (t.status as TrialStatus) ?? 'draft',
           participants: t.participants ?? [],
         }));
@@ -62,11 +74,17 @@ function readTrials(): Trial[] {
       const normalized = (seedTrials as any[]).map((t: any) => ({
         id: t.id,
         year: t.year,
+        trialType: t.trialType ?? 'competitive',
         cultureId: t.cultureId,
         locationId: t.locationId,
         predecessor: t.predecessor ?? '',
-        background: t.background ?? '',
-        technology: t.technology ?? '',
+        agronomicBackground: t.agronomicBackground ?? 'favorable',
+        growingConditions: t.growingConditions ?? 'rainfed',
+        cultivationTechnology: t.cultivationTechnology ?? 'traditional',
+        growingMethod: t.growingMethod ?? 'soil_traditional',
+        harvestTiming: t.harvestTiming ?? 'optimal',
+        harvestDate: t.harvestDate ?? '',
+        additionalInfo: t.additionalInfo ?? '',
         status: (t.status as TrialStatus) ?? 'draft',
         participants: t.participants ?? [],
       }));
@@ -79,11 +97,17 @@ function readTrials(): Trial[] {
       const normalized = (seedTrials as any[]).map((t: any) => ({
         id: t.id,
         year: t.year,
+        trialType: t.trialType ?? 'competitive',
         cultureId: t.cultureId,
         locationId: t.locationId,
         predecessor: t.predecessor ?? '',
-        background: t.background ?? '',
-        technology: t.technology ?? '',
+        agronomicBackground: t.agronomicBackground ?? 'favorable',
+        growingConditions: t.growingConditions ?? 'rainfed',
+        cultivationTechnology: t.cultivationTechnology ?? 'traditional',
+        growingMethod: t.growingMethod ?? 'soil_traditional',
+        harvestTiming: t.harvestTiming ?? 'optimal',
+        harvestDate: t.harvestDate ?? '',
+        additionalInfo: t.additionalInfo ?? '',
         status: (t.status as TrialStatus) ?? 'draft',
         participants: t.participants ?? [],
       }));
@@ -134,19 +158,25 @@ export function getTrialById(id: string): Trial | undefined {
 
 export interface CreateTrialInput {
   year: number;
+  trialType: string;
   cultureId: string;
   locationId: string;
   participantVarietyIds: string[];
   standardVarietyId: string;
   predecessor?: string;
-  background?: string;
-  technology?: string;
+  agronomicBackground?: string;
+  growingConditions?: string;
+  cultivationTechnology?: string;
+  growingMethod?: string;
+  harvestTiming?: string;
+  harvestDate?: string;
+  additionalInfo?: string;
 }
 
 export function createTrial(input: CreateTrialInput): Trial {
   const id = uid();
   const participants: TrialParticipant[] = input.participantVarietyIds.map(vid => {
-    const v = getVarietyById(vid) as VarietyRecord | undefined;
+    const v = getVariety(vid) as VarietyRecord | undefined;
     return {
       id: uid(),
       trialId: id,
@@ -163,11 +193,17 @@ export function createTrial(input: CreateTrialInput): Trial {
   const trial: Trial = {
     id,
     year: input.year,
+    trialType: input.trialType,
     cultureId: input.cultureId,
     locationId: input.locationId,
     predecessor: input.predecessor ?? '',
-    background: input.background ?? '',
-    technology: input.technology ?? '',
+    agronomicBackground: input.agronomicBackground ?? 'favorable',
+    growingConditions: input.growingConditions ?? 'rainfed',
+    cultivationTechnology: input.cultivationTechnology ?? 'traditional',
+    growingMethod: input.growingMethod ?? 'soil_traditional',
+    harvestTiming: input.harvestTiming ?? 'optimal',
+    harvestDate: input.harvestDate ?? '',
+    additionalInfo: input.additionalInfo ?? '',
     status: 'draft',
     participants,
   };
@@ -262,7 +298,7 @@ export function saveResults(trial: Trial, values: ResultsMap) {
       },
     ];
 
-    const newStatus = improvementPct >= 8 ? 'recommended' : improvementPct <= -5 ? 'removed' : 'extended';
+    const newStatus = improvementPct >= 8 ? 'recommended_to_extend' : improvementPct <= -5 ? 'recommended_to_remove' : 'testing';
 
     upsertVarietyYearResults(p.varietyId, trial.locationId, trial.year, summary, rows, newStatus as any);
   }

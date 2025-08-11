@@ -1,26 +1,13 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Edit, FileText, ArrowLeft } from "lucide-react";
 
 interface VarietyHeaderProps {
   name: string;
   culture: string;
-  status: 'testing' | 'approved' | 'rejected' | 'recommended' | 'extended' | 'removed';
 }
 
-const statusConfig = {
-  testing: { label: 'На испытании', variant: 'secondary' as const, className: 'bg-processing text-processing-foreground hover:bg-processing/90' },
-  approved: { label: 'Включён в реестр', variant: 'success' as const, className: '' },
-  rejected: { label: 'Отклонён', variant: 'destructive' as const, className: '' },
-  recommended: { label: 'Рекомендован', variant: 'success' as const, className: '' },
-  extended: { label: 'Продлён', variant: 'secondary' as const, className: '' },
-  removed: { label: 'Снят', variant: 'destructive' as const, className: '' },
-};
-
-export const VarietyHeader = ({ name, culture, status }: VarietyHeaderProps) => {
-  const statusInfo = statusConfig[status];
-
+export const VarietyHeader = ({ name, culture }: VarietyHeaderProps) => {
   return (
     <div className="border-b border-border bg-card p-6">
       <div className="container mx-auto">
@@ -28,12 +15,6 @@ export const VarietyHeader = ({ name, culture, status }: VarietyHeaderProps) => 
           <div className="space-y-3">
             <h1 className="text-3xl font-bold text-foreground">{name}</h1>
             <p className="text-lg text-muted-foreground">{culture}</p>
-            <Badge 
-              variant={statusInfo.variant}
-              className={statusInfo.className}
-            >
-              {statusInfo.label}
-            </Badge>
           </div>
           
           <div className="flex gap-3">
@@ -45,7 +26,6 @@ export const VarietyHeader = ({ name, culture, status }: VarietyHeaderProps) => 
               <FileText className="mr-2 h-4 w-4" />
               Сформировать отчёт
             </Button>
-            {/* Кнопка ввода результатов перенесена в блок результатов */}
             <Button asChild variant="outline" size="sm">
               <Link to="/">Вернуться к списку сортов</Link>
             </Button>

@@ -5,33 +5,110 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { getVarieties } from '@/lib/varietiesStore';
 import { createTrial } from '@/lib/trialsStore';
-import { regionsStructure, allSites } from '@/lib/locations';
+import { getAllRegions, getRegionName, getRegionsByOblast, getOblastByRegion } from '@/lib/locations';
 
 const cultureOptions = [
   { id: 'wheat', label: 'Пшеница' },
   { id: 'barley', label: 'Ячмень' },
+  { id: 'oats', label: 'Овес' },
+  { id: 'corn', label: 'Кукуруза' },
   { id: 'potato', label: 'Картофель' },
   { id: 'sunflower', label: 'Подсолнечник' },
+  { id: 'soybean', label: 'Соя' },
+  { id: 'rapeseed', label: 'Рапс' },
+  { id: 'forage_grasses', label: 'Кормовые травы' },
+  { id: 'other', label: 'Другое' },
+];
+
+const trialTypeOptions = [
+  { id: 'competitive', label: 'Конкурсное сортоиспытание' },
+  { id: 'oos', label: 'Испытание на отличимость, однородность и стабильность (ООС)' },
+  { id: 'entophytotrial', label: 'Энтофитоиспытание' },
+  { id: 'production', label: 'Производственное сортоиспытание' },
+  { id: 'technological', label: 'Технолого-экономическое испытание' },
+];
+
+const predecessorOptions = [
+  { id: 'fallow', label: 'Пар' },
+  { id: 'wheat', label: 'Пшеница' },
+  { id: 'barley', label: 'Ячмень' },
+  { id: 'oats', label: 'Овес' },
+  { id: 'corn', label: 'Кукуруза' },
+  { id: 'potato', label: 'Картофель' },
+  { id: 'sunflower', label: 'Подсолнечник' },
+  { id: 'soybean', label: 'Соя' },
+  { id: 'forage_grasses', label: 'Кормовые травы' },
+  { id: 'other', label: 'Другое' },
+];
+
+const agronomicBackgroundOptions = [
+  { id: 'favorable', label: 'Благоприятный' },
+  { id: 'moderately_favorable', label: 'Умеренно благоприятный' },
+  { id: 'unfavorable', label: 'Неблагоприятный' },
+];
+
+const growingConditionsOptions = [
+  { id: 'rainfed', label: 'На богаре' },
+  { id: 'irrigated', label: 'На орошении' },
+  { id: 'mixed', label: 'Смешанное' },
+];
+
+const cultivationTechnologyOptions = [
+  { id: 'traditional', label: 'Традиционная' },
+  { id: 'minimal', label: 'Минимальная' },
+  { id: 'no_till', label: 'Нулевая (no-till)' },
+  { id: 'organic', label: 'Органическая' },
+];
+
+const growingMethodOptions = [
+  { id: 'soil_traditional', label: 'Традиционное выращивание в почве' },
+  { id: 'hydroponics', label: 'Гидропоника' },
+  { id: 'cuttings', label: 'Черенкование' },
+  { id: 'layering', label: 'Отводки' },
+  { id: 'division', label: 'Деление' },
+  { id: 'grafting', label: 'Прививка' },
+  { id: 'seeds', label: 'Выращивание из семян' },
+  { id: 'protected_ground', label: 'Защищенный грунт' },
+  { id: 'open_ground', label: 'Открытый грунт' },
+];
+
+const harvestTimingOptions = [
+  { id: 'early_2', label: 'Очень ранняя уборка (-2)' },
+  { id: 'early_1', label: 'Ранняя уборка (-1)' },
+  { id: 'optimal', label: 'Оптимальный срок уборки (0)' },
+  { id: 'late_1', label: 'Поздняя уборка (+1)' },
+  { id: 'late_2', label: 'Очень поздняя уборка (+2)' },
 ];
 
 const CreateTrial = () => {
   const navigate = useNavigate();
   const varieties = useMemo(() => getVarieties(), []);
+  const allRegions = useMemo(() => getAllRegions(), []);
+  // Фильтруем только регионы (города и районы), исключаем области
+  const trialSites = useMemo(() => allRegions.filter(region => region.type !== 'oblast'), [allRegions]);
 
   const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [trialType, setTrialType] = useState<string>('competitive');
   const [cultureId, setCultureId] = useState<string>('wheat');
-  const [locationId, setLocationId] = useState<string>(allSites[0] ?? '');
-  const [predecessor, setPredecessor] = useState<string>('');
-  const [background, setBackground] = useState<string>('');
-  const [technology, setTechnology] = useState<string>('');
+  const [locationId, setLocationId] = useState<string>(trialSites[0]?.id ?? '');
+  const [predecessor, setPredecessor] = useState<string>('fallow');
+  const [agronomicBackground, setAgronomicBackground] = useState<string>('favorable');
+  const [growingConditions, setGrowingConditions] = useState<string>('rainfed');
+  const [cultivationTechnology, setCultivationTechnology] = useState<string>('traditional');
+  const [growingMethod, setGrowingMethod] = useState<string>('soil_traditional');
+  const [harvestTiming, setHarvestTiming] = useState<string>('optimal');
+  const [harvestDate, setHarvestDate] = useState<string>('');
+  const [additionalInfo, setAdditionalInfo] = useState<string>('');
   const [selectedVarieties, setSelectedVarieties] = useState<Record<string, boolean>>({});
   const [standardVarietyId, setStandardVarietyId] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
   const selectedIds = Object.keys(selectedVarieties).filter(id => selectedVarieties[id]);
-  const canSave = year && cultureId && locationId && selectedIds.length > 0 && !!standardVarietyId && selectedIds.includes(standardVarietyId) && !saving;
+  const canSave = year && trialType && cultureId && locationId && selectedIds.length > 0 && !!standardVarietyId && selectedIds.includes(standardVarietyId) && !saving;
 
   const toggleVariety = (id: string) => {
     setSelectedVarieties(prev => ({ ...prev, [id]: !prev[id] }));
@@ -46,13 +123,19 @@ const CreateTrial = () => {
     try {
       const trial = createTrial({
         year,
+        trialType,
         cultureId,
         locationId,
         participantVarietyIds: selectedIds,
         standardVarietyId,
         predecessor,
-        background,
-        technology,
+        agronomicBackground,
+        growingConditions,
+        cultivationTechnology,
+        growingMethod,
+        harvestTiming,
+        harvestDate,
+        additionalInfo,
       });
       navigate(`/trials/${trial.id}/entry`);
     } finally {
@@ -71,57 +154,193 @@ const CreateTrial = () => {
             <CardTitle className="text-xl">Создать сортоопыт</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Основные параметры */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="year">Год</Label>
-                <Input id="year" type="number" value={year} onChange={(e) => setYear(parseInt(e.target.value || '0'))} />
+                <Label htmlFor="year">Год *</Label>
+                <Input 
+                  id="year" 
+                  type="number" 
+                  value={year} 
+                  onChange={(e) => setYear(parseInt(e.target.value || '0'))} 
+                />
               </div>
               <div>
-                <Label htmlFor="culture">Культура</Label>
-                <select id="culture" className="w-full h-10 border border-input rounded-md bg-background px-3 text-sm" value={cultureId} onChange={(e) => setCultureId(e.target.value)}>
-                  {cultureOptions.map(o => (
-                    <option key={o.id} value={o.id}>{o.label}</option>
-                  ))}
-                </select>
+                <Label htmlFor="trialType">Вид испытания *</Label>
+                <Select value={trialType} onValueChange={setTrialType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите вид испытания" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {trialTypeOptions.map(option => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <Label htmlFor="location">Сортоучасток</Label>
-                <select
-                  id="location"
-                  className="w-full h-10 border border-input rounded-md bg-background px-3 text-sm"
-                  value={locationId}
-                  onChange={(e) => setLocationId(e.target.value)}
-                >
-                  {regionsStructure.map((r) => (
-                    r.zones.map((z) => (
-                      <optgroup key={`${r.region}-${z.name}`} label={`${r.region} — ${z.name}`}>
-                        {z.sites.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </optgroup>
-                    ))
-                  ))}
-                </select>
+                <Label htmlFor="culture">Культура *</Label>
+                <Select value={cultureId} onValueChange={setCultureId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите культуру" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cultureOptions.map(option => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Сортоучасток и область */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="location">Наименование сортоучастка и области *</Label>
+                <Select value={locationId} onValueChange={setLocationId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите сортоучасток" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {trialSites.map((region) => {
+                      const oblast = getOblastByRegion(region.id);
+                      return (
+                        <SelectItem key={region.id} value={region.id}>
+                          {region.name} ({oblast?.name})
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="harvestDate">Дата уборки</Label>
+                <Input 
+                  id="harvestDate" 
+                  type="date" 
+                  value={harvestDate} 
+                  onChange={(e) => setHarvestDate(e.target.value)} 
+                />
+              </div>
+            </div>
+
+            {/* Агрономические параметры */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="predecessor">Предшественник</Label>
-                <Input id="predecessor" value={predecessor} onChange={(e) => setPredecessor(e.target.value)} placeholder="напр. Пар" />
+                <Select value={predecessor} onValueChange={setPredecessor}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите предшественник" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {predecessorOptions.map(option => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <Label htmlFor="background">Фон</Label>
-                <Input id="background" value={background} onChange={(e) => setBackground(e.target.value)} placeholder="напр. Минеральный" />
+                <Label htmlFor="agronomicBackground">Агрономический фон</Label>
+                <Select value={agronomicBackground} onValueChange={setAgronomicBackground}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите агрономический фон" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {agronomicBackgroundOptions.map(option => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <Label htmlFor="technology">Технология</Label>
-                <Input id="technology" value={technology} onChange={(e) => setTechnology(e.target.value)} placeholder="напр. Интенсивная" />
+                <Label htmlFor="growingConditions">Условия выращивания</Label>
+                <Select value={growingConditions} onValueChange={setGrowingConditions}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите условия выращивания" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {growingConditionsOptions.map(option => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
+            {/* Технологические параметры */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="cultivationTechnology">Технология возделывания</Label>
+                <Select value={cultivationTechnology} onValueChange={setCultivationTechnology}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите технологию" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cultivationTechnologyOptions.map(option => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="growingMethod">Способ выращивания</Label>
+                <Select value={growingMethod} onValueChange={setGrowingMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите способ выращивания" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {growingMethodOptions.map(option => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="harvestTiming">Сроки уборки</Label>
+                <Select value={harvestTiming} onValueChange={setHarvestTiming}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Выберите сроки уборки" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {harvestTimingOptions.map(option => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Дополнительная информация */}
+            <div>
+              <Label htmlFor="additionalInfo">Дополнительная информация</Label>
+              <Textarea 
+                id="additionalInfo" 
+                value={additionalInfo} 
+                onChange={(e) => setAdditionalInfo(e.target.value)} 
+                placeholder="Дополнительные сведения об условиях проведения испытания..."
+                rows={3}
+              />
+            </div>
+
+            {/* Выбор сортов */}
             <div className="space-y-3">
-              <div className="font-medium">Выберите сорта-участники и отметьте стандарт</div>
+              <div className="font-medium">Выберите сорта-участники и отметьте стандарт *</div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 {varieties.map(v => (
                   <label key={v.id} className="flex items-center gap-3 rounded-md border p-3">
