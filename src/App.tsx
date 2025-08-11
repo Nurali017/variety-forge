@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import VarietiesList from "./pages/VarietiesList";
-import VarietyCard from "./pages/VarietyCard";
+
 import VarietyCardPage from "./pages/VarietyCardPage";
 import TestResultsForm from "./pages/TestResultsForm";
 import CreateVariety from "./pages/CreateVariety";
@@ -24,7 +24,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<VarietiesList />} />
-          <Route path="/variety/:id" element={<VarietyCard />} />
+          <Route path="/variety/:id" element={<VarietyCardPage />} />
           <Route path="/varieties/:varietyId" element={<VarietyCardPage />} />
           <Route path="/variety/:id/test-results" element={<TestResultsForm />} />
           <Route path="/varieties/new" element={<CreateVariety />} />

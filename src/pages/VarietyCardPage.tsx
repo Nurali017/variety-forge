@@ -86,13 +86,14 @@ function extractMaturityGroup(culture?: string): string {
 }
 
 const VarietyCardPage = () => {
-  const { varietyId } = useParams();
+  const { varietyId, id } = useParams();
+  const paramId = varietyId ?? id;
   const [data, setData] = useState<LSVarietyData | null>(null);
 
   // Read from localStorage on mount and when id changes
   useEffect(() => {
-    if (!varietyId) return;
-    const storageKey = `variety-${varietyId}`;
+    if (!paramId) return;
+    const storageKey = `variety-${paramId}`;
     const raw = localStorage.getItem(storageKey);
     if (raw) {
       try {
@@ -121,10 +122,10 @@ const VarietyCardPage = () => {
         setData(null);
       }
     } else {
-      console.error(`Данные для сорта с ID ${varietyId} не найдены в localStorage.`);
+      console.error(`Данные для сорта с ID ${paramId} не найдены в localStorage.`);
       setData(null);
     }
-  }, [varietyId]);
+  }, [paramId]);
 
   const headerProps = useMemo(() => {
     if (!data) return null;
@@ -177,7 +178,7 @@ const VarietyCardPage = () => {
     }));
   }, [data]);
 
-  if (!varietyId) {
+  if (!paramId) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto py-10 space-y-4">
@@ -193,7 +194,7 @@ const VarietyCardPage = () => {
       <div className="min-h-screen bg-background">
         <div className="container mx-auto py-10 space-y-4">
           <h1 className="text-2xl font-bold text-foreground">Сорт не найден</h1>
-          <p className="text-muted-foreground">Данные для ключа variety-{varietyId} отсутствуют в localStorage.</p>
+          <p className="text-muted-foreground">Данные для ключа variety-{paramId} отсутствуют в localStorage.</p>
           <Link className="underline" to="/">Вернуться к списку сортов</Link>
         </div>
       </div>
