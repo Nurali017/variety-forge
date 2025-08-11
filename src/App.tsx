@@ -13,6 +13,7 @@ import TrialsList from "./pages/TrialsList";
 import CreateTrial from "./pages/CreateTrial";
 import TrialEntry from "./pages/TrialEntry";
 import NotFound from "./pages/NotFound";
+import ReportsPreview from "./pages/ReportsPreview";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,8 @@ const App = () => (
           <Route path="/trials" element={<TrialsList />} />
           <Route path="/trials/new" element={<CreateTrial />} />
           <Route path="/trials/:id/entry" element={<TrialEntry />} />
+          {/* Reports */}
+          <Route path="/reports/preview" element={<ReportsPreview />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
