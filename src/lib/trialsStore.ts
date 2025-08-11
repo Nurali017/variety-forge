@@ -161,6 +161,10 @@ export function createTrial(input: CreateTrialInput): Trial {
     year: input.year,
     cultureId: input.cultureId,
     locationId: input.locationId,
+    predecessor: '',
+    background: '',
+    technology: '',
+    status: 'draft',
     participants,
   };
 
