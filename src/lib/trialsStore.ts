@@ -138,6 +138,9 @@ export interface CreateTrialInput {
   locationId: string;
   participantVarietyIds: string[];
   standardVarietyId: string;
+  predecessor?: string;
+  background?: string;
+  technology?: string;
 }
 
 export function createTrial(input: CreateTrialInput): Trial {
@@ -162,9 +165,9 @@ export function createTrial(input: CreateTrialInput): Trial {
     year: input.year,
     cultureId: input.cultureId,
     locationId: input.locationId,
-    predecessor: '',
-    background: '',
-    technology: '',
+    predecessor: input.predecessor ?? '',
+    background: input.background ?? '',
+    technology: input.technology ?? '',
     status: 'draft',
     participants,
   };

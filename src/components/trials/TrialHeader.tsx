@@ -19,9 +19,9 @@ export const TrialHeader = ({ cultureId, year, locationId, predecessor, backgrou
         <Badge variant="secondary">Культура: {culture}</Badge>
         <Badge variant="secondary">Год: {year}</Badge>
         <Badge variant="secondary">Сортоучасток: {locationId}</Badge>
-        {predecessor ? <Badge variant="secondary">Предшественник: {predecessor}</Badge> : null}
-        {background ? <Badge variant="secondary">Фон: {background}</Badge> : null}
-        {technology ? <Badge variant="secondary">Технология: {technology}</Badge> : null}
+        <Badge variant="secondary">Предшественник: {predecessor || '—'}</Badge>
+        <Badge variant="secondary">Фон: {background || '—'}</Badge>
+        <Badge variant="secondary">Технология: {technology || '—'}</Badge>
       </CardContent>
     </Card>
   );

@@ -56,7 +56,8 @@ export const TrialEntryTable = ({ trial, values, onChange, readOnly }: TrialEntr
                   <TableHead className="min-w-[260px] sticky left-0 bg-background z-10">Показатель</TableHead>
                   {trial.participants.map((p) => (
                     <TableHead key={p.id} className={`min-w-[220px] ${p.isStandard ? 'bg-accent/30' : ''}`}>
-                      {p.isStandard ? `Стандарт: ${p.varietyName}` : p.varietyName}
+                      <div className="font-medium">{p.isStandard ? `Стандарт: ${p.varietyName}` : p.varietyName}</div>
+                      <div className="text-xs text-muted-foreground">{trial.locationId}</div>
                     </TableHead>
                   ))}
                 </TableRow>

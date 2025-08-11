@@ -15,6 +15,7 @@ const TrialEntry = () => {
 
   const [values, setValues] = useState<ValuesMap>({});
   const [saving, setSaving] = useState(false);
+  const readOnly = new URLSearchParams(location.search).get('readonly') === '1';
 
   useEffect(() => {
     document.title = 'Рабочий стол сортоопыта';
@@ -77,10 +78,16 @@ const TrialEntry = () => {
             <CardTitle className="text-xl">Ввод данных сортоопыта</CardTitle>
           </CardHeader>
           <CardContent>
-            <TrialEntryTable trial={trial} values={values} onChange={onChange} />
+            <TrialEntryTable trial={trial} values={values} onChange={onChange} readOnly={readOnly} />
             <div className="mt-6 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => navigate('/trials')}>Отмена</Button>
-              <Button onClick={onSave} disabled={!allFilled || saving}>{saving ? 'Сохранение...' : 'Сохранить данные по опыту'}</Button>
+              {readOnly ? (
+                <Button variant="outline" onClick={() => navigate('/trials')}>К списку сортоопытов</Button>
+              ) : (
+                <>
+                  <Button variant="outline" onClick={() => navigate('/trials')}>Отмена</Button>
+                  <Button onClick={onSave} disabled={!allFilled || saving}>{saving ? 'Сохранение...' : 'Сохранить данные по опыту'}</Button>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

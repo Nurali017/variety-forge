@@ -22,6 +22,9 @@ const CreateTrial = () => {
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [cultureId, setCultureId] = useState<string>('wheat');
   const [locationId, setLocationId] = useState<string>('ГСУ-1');
+  const [predecessor, setPredecessor] = useState<string>('');
+  const [background, setBackground] = useState<string>('');
+  const [technology, setTechnology] = useState<string>('');
   const [selectedVarieties, setSelectedVarieties] = useState<Record<string, boolean>>({});
   const [standardVarietyId, setStandardVarietyId] = useState<string>('');
   const [saving, setSaving] = useState(false);
@@ -46,6 +49,9 @@ const CreateTrial = () => {
         locationId,
         participantVarietyIds: selectedIds,
         standardVarietyId,
+        predecessor,
+        background,
+        technology,
       });
       navigate(`/trials/${trial.id}/entry`);
     } finally {
@@ -80,6 +86,21 @@ const CreateTrial = () => {
               <div>
                 <Label htmlFor="location">Сортоучасток</Label>
                 <Input id="location" value={locationId} onChange={(e) => setLocationId(e.target.value)} placeholder="Напр. Акмолинская ГСУ" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="predecessor">Предшественник</Label>
+                <Input id="predecessor" value={predecessor} onChange={(e) => setPredecessor(e.target.value)} placeholder="напр. Пар" />
+              </div>
+              <div>
+                <Label htmlFor="background">Фон</Label>
+                <Input id="background" value={background} onChange={(e) => setBackground(e.target.value)} placeholder="напр. Минеральный" />
+              </div>
+              <div>
+                <Label htmlFor="technology">Технология</Label>
+                <Input id="technology" value={technology} onChange={(e) => setTechnology(e.target.value)} placeholder="напр. Интенсивная" />
               </div>
             </div>
 
