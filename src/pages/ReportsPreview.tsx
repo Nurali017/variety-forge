@@ -5,6 +5,7 @@ import { buildReportData } from "@/lib/reports/aggregation";
 import { ReportParams } from "@/lib/reports/types";
 import { ReportGroupTable } from "@/components/reports/ReportGroupTable";
 import { getZoneBySite } from "@/lib/locations";
+import { getTrials } from "@/lib/trialsStore";
 
 function setMeta(tag: string, attrs: Record<string, string>) {
   let el = document.querySelector(`${tag}${attrs.name ? `[name=\"${attrs.name}\"]` : ""}${attrs.rel ? `[rel=\"${attrs.rel}\"]` : ""}`) as HTMLMetaElement | HTMLLinkElement | null;
@@ -20,11 +21,17 @@ function setMeta(tag: string, attrs: Record<string, string>) {
 }
 
 const ReportsPreview = () => {
-  // Temporary params for testing
+  // Параметры формируем на лету из данных: культура и доступные годы
+  const cultureId = "wheat";
+  const years = useMemo(() => {
+    const ys = Array.from(new Set(getTrials().filter(t => t.cultureId === cultureId).map(t => t.year)));
+    return ys.sort((a,b) => a - b);
+  }, []);
+
   const params: ReportParams = {
     region: "",
-    years: [2022, 2023, 2024],
-    cultureId: "wheat",
+    years: years.length ? years : [new Date().getFullYear()],
+    cultureId,
   };
 
   const data = useMemo(() => buildReportData(params), [params]);
