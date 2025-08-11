@@ -1,5 +1,5 @@
 import { getVarietyById, VarietyRecord, upsertVarietyYearResults, TestResult as VRTestResult } from '@/lib/varietiesStore';
-
+import { seedTrials, seedTrialResults } from '@/lib/seed';
 export interface TrialParticipant {
   id: string; // participant id
   trialId: string;
@@ -33,8 +33,21 @@ function uid() {
 function readTrials(): Trial[] {
   try {
     const raw = localStorage.getItem(LS_TRIALS);
-    return raw ? (JSON.parse(raw) as Trial[]) : [];
+    if (raw) {
+      const parsed = JSON.parse(raw) as Trial[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+    // Seed if empty
+    if (Array.isArray(seedTrials) && seedTrials.length > 0) {
+      localStorage.setItem(LS_TRIALS, JSON.stringify(seedTrials));
+      return seedTrials as unknown as Trial[];
+    }
+    return [];
   } catch {
+    if (Array.isArray(seedTrials) && seedTrials.length > 0) {
+      localStorage.setItem(LS_TRIALS, JSON.stringify(seedTrials));
+      return seedTrials as unknown as Trial[];
+    }
     return [];
   }
 }
@@ -46,8 +59,21 @@ function writeTrials(items: Trial[]) {
 function readResults(): TrialResult[] {
   try {
     const raw = localStorage.getItem(LS_RESULTS);
-    return raw ? (JSON.parse(raw) as TrialResult[]) : [];
+    if (raw) {
+      const parsed = JSON.parse(raw) as TrialResult[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+    // Seed if empty
+    if (Array.isArray(seedTrialResults) && seedTrialResults.length > 0) {
+      localStorage.setItem(LS_RESULTS, JSON.stringify(seedTrialResults));
+      return seedTrialResults as unknown as TrialResult[];
+    }
+    return [];
   } catch {
+    if (Array.isArray(seedTrialResults) && seedTrialResults.length > 0) {
+      localStorage.setItem(LS_RESULTS, JSON.stringify(seedTrialResults));
+      return seedTrialResults as unknown as TrialResult[];
+    }
     return [];
   }
 }

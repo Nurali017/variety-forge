@@ -1,3 +1,4 @@
+import { seedVarieties } from './seed';
 export type Status = 'testing' | 'approved' | 'rejected' | 'recommended' | 'extended' | 'removed';
 
 export interface DocumentItem {
@@ -47,9 +48,22 @@ const LS_KEY = 'varieties';
 function readAll(): VarietyRecord[] {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as VarietyRecord[];
+    if (raw) {
+      const parsed = JSON.parse(raw) as VarietyRecord[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+    // Seed with starter data if empty
+    if (Array.isArray(seedVarieties) && seedVarieties.length > 0) {
+      writeAll(seedVarieties as unknown as VarietyRecord[]);
+      return seedVarieties as unknown as VarietyRecord[];
+    }
+    return [];
   } catch {
+    // Attempt to seed on error as well
+    if (Array.isArray(seedVarieties) && seedVarieties.length > 0) {
+      writeAll(seedVarieties as unknown as VarietyRecord[]);
+      return seedVarieties as unknown as VarietyRecord[];
+    }
     return [];
   }
 }
