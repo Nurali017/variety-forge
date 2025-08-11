@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { buildReportData } from "@/lib/reports/aggregation";
 import { ReportParams } from "@/lib/reports/types";
 import { ReportGroupTable } from "@/components/reports/ReportGroupTable";
+import { getZoneBySite } from "@/lib/locations";
 
 function setMeta(tag: string, attrs: Record<string, string>) {
   let el = document.querySelector(`${tag}${attrs.name ? `[name=\"${attrs.name}\"]` : ""}${attrs.rel ? `[rel=\"${attrs.rel}\"]` : ""}`) as HTMLMetaElement | HTMLLinkElement | null;
@@ -55,7 +56,10 @@ const ReportsPreview = () => {
                 region.sites.map((site) => (
                   <article key={site.siteName} className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-medium">Сортоучасток: {site.siteName}</h2>
+                      <div>
+                        <h2 className="text-lg font-medium">Сортоучасток: {site.siteName}</h2>
+                        <p className="text-xs text-muted-foreground">Зона: {getZoneBySite(site.siteName) || '—'}</p>
+                      </div>
                     </div>
                     <Separator />
                     {site.groups.map((g) => (

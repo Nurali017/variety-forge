@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { getVarieties } from '@/lib/varietiesStore';
 import { createTrial } from '@/lib/trialsStore';
+import { regionsStructure, allSites } from '@/lib/locations';
 
 const cultureOptions = [
   { id: 'wheat', label: 'Пшеница' },
@@ -21,7 +22,7 @@ const CreateTrial = () => {
 
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [cultureId, setCultureId] = useState<string>('wheat');
-  const [locationId, setLocationId] = useState<string>('ГСУ-1');
+  const [locationId, setLocationId] = useState<string>(allSites[0] ?? '');
   const [predecessor, setPredecessor] = useState<string>('');
   const [background, setBackground] = useState<string>('');
   const [technology, setTechnology] = useState<string>('');
@@ -85,7 +86,22 @@ const CreateTrial = () => {
               </div>
               <div>
                 <Label htmlFor="location">Сортоучасток</Label>
-                <Input id="location" value={locationId} onChange={(e) => setLocationId(e.target.value)} placeholder="Напр. Акмолинская ГСУ" />
+                <select
+                  id="location"
+                  className="w-full h-10 border border-input rounded-md bg-background px-3 text-sm"
+                  value={locationId}
+                  onChange={(e) => setLocationId(e.target.value)}
+                >
+                  {regionsStructure.map((r) => (
+                    r.zones.map((z) => (
+                      <optgroup key={`${r.region}-${z.name}`} label={`${r.region} — ${z.name}`}>
+                        {z.sites.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </optgroup>
+                    ))
+                  ))}
+                </select>
               </div>
             </div>
 

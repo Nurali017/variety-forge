@@ -2,6 +2,7 @@ import { getTrials, getResultsForTrial } from "@/lib/trialsStore";
 import type { Trial } from "@/lib/trialsStore";
 import { getVarietyById } from "@/lib/varietiesStore";
 import { ReportData, ReportGroup, ReportParams, ReportRegion, ReportRow, ReportSite } from "./types";
+import { getRegionBySite } from "@/lib/locations";
 
 function parseNum(s?: string): number | undefined {
   if (!s) return undefined;
@@ -20,7 +21,7 @@ export function getMatchingTrials(params: ReportParams): Trial[] {
   return getTrials().filter((t) => {
     if (t.cultureId !== params.cultureId) return false;
     if (!yearsSet.has(t.year)) return false;
-    if (params.region && t.locationId !== params.region) return false;
+    if (params.region && getRegionBySite(t.locationId) !== params.region) return false;
     if (params.predecessor && (t.predecessor || "") !== params.predecessor) return false;
     return true;
   });
@@ -54,8 +55,8 @@ export function buildReportData(params: ReportParams): ReportData {
       const maturity = variety?.maturityGroup || "—";
       const vName = variety?.name || p.varietyId;
 
-      const regionKey = trial.locationId; // using region label
-      const siteKey = trial.locationId; // temporary: site == location
+      const regionKey = getRegionBySite(trial.locationId) || trial.locationId; // область из справочника
+      const siteKey = trial.locationId; // сортоучасток
 
       if (!regionsMap.has(regionKey)) regionsMap.set(regionKey, new Map());
       const sitesMap = regionsMap.get(regionKey)!;
