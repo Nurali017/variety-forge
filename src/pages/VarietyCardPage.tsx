@@ -66,6 +66,30 @@ const VarietyCardPage = () => {
           isPositive: undefined,
         });
       }
+
+      // Если средняя урожайность не сохранена явно (например, для пшеницы она вычисляемая) — посчитаем из делянок
+      const yieldLabel = LABELS['yield_avg'];
+      const hasYield = bucket.results.some((x) => x.indicator === yieldLabel);
+      if (!hasYield) {
+        const plotKeys = ['yield_plot1', 'yield_plot2', 'yield_plot3', 'yield_plot4'];
+        const nums = plotKeys
+          .map((k) => tr.results.find((rr) => rr.key === k)?.value)
+          .map((s) => {
+            const n = Number((s ?? '').toString().replace(',', '.'));
+            return Number.isFinite(n) ? n : undefined;
+          })
+          .filter((n): n is number => typeof n === 'number');
+        if (nums.length === 4) {
+          const avg = nums.reduce((a, b) => a + b, 0) / 4;
+          bucket.results.push({
+            indicator: yieldLabel,
+            varietyValue: avg.toFixed(2),
+            standardValue: '—',
+            deviation: '—',
+            isPositive: undefined,
+          });
+        }
+      }
     }
 
     // Преобразуем в формат RegionData[] с сортировкой и порядком показателей
