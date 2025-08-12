@@ -63,51 +63,69 @@ export const TrialEntryTable = ({ trial, values, onChange, readOnly }: TrialEntr
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {group.indicators.map((ind) => (
-                  <TableRow key={ind.key}>
-                    <TableCell className="sticky left-0 bg-background z-10">
-                      <div className="font-medium">{ind.label}{ind.unit ? `, ${ind.unit}` : ''}</div>
-                    </TableCell>
-                    {trial.participants.map((p) => {
-                      if (ind.type === 'input') {
-                        return (
-                          <TableCell key={p.id}>
-                            <Input
-                              value={getVal(p.id, ind.key)}
-                              onChange={(e) => onChange(p.id, ind.key, e.target.value)}
-                              inputMode="decimal"
-                              className="h-9"
-                              disabled={readOnly}
-                            />
-                          </TableCell>
-                        );
-                      }
-                      // computed
-                      let display = '';
-                      if (ind.key === 'yield_avg') {
-                        const m = getMean(p.id);
-                        display = m != null ? round2(m) : '';
-                      } else if (ind.key === 'over_std_abs') {
-                        const m = getMean(p.id);
-                        display = (m != null && sAvg != null) ? round2(m - sAvg) : '';
-                      } else if (ind.key === 'over_std_pct') {
-                        const m = getMean(p.id);
-                        display = (m != null && sAvg && sAvg > 0) ? round2(((m - sAvg) / sAvg) * 100) : '';
-                      } else if (ind.key === 'sx') {
-                        display = sSigma != null ? round2(sSigma) : '';
-                      } else if (ind.key === 'p_accuracy') {
-                        display = pAcc != null ? round2(pAcc) : '';
-                      } else if (ind.key === 'lsd') {
-                        display = lsdVal != null ? round2(lsdVal) : '';
-                      }
-                      return (
-                        <TableCell key={p.id} className="text-sm text-muted-foreground">
+                {group.indicators.map((ind) => {
+                  // Trial-wide stats shown once across all participants
+                  if (ind.key === 'sx' || ind.key === 'p_accuracy' || ind.key === 'lsd') {
+                    let display = '';
+                    if (ind.key === 'sx') {
+                      display = sSigma != null ? round2(sSigma) : '';
+                    } else if (ind.key === 'p_accuracy') {
+                      display = pAcc != null ? round2(pAcc) : '';
+                    } else if (ind.key === 'lsd') {
+                      display = lsdVal != null ? round2(lsdVal) : '';
+                    }
+                    return (
+                      <TableRow key={ind.key}>
+                        <TableCell className="sticky left-0 bg-background z-10">
+                          <div className="font-medium">{ind.label}{ind.unit ? `, ${ind.unit}` : ''}</div>
+                        </TableCell>
+                        <TableCell colSpan={trial.participants.length} className="text-sm text-muted-foreground">
                           {display || '—'}
                         </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
+                      </TableRow>
+                    );
+                  }
+
+                  return (
+                    <TableRow key={ind.key}>
+                      <TableCell className="sticky left-0 bg-background z-10">
+                        <div className="font-medium">{ind.label}{ind.unit ? `, ${ind.unit}` : ''}</div>
+                      </TableCell>
+                      {trial.participants.map((p) => {
+                        if (ind.type === 'input') {
+                          return (
+                            <TableCell key={p.id}>
+                              <Input
+                                value={getVal(p.id, ind.key)}
+                                onChange={(e) => onChange(p.id, ind.key, e.target.value)}
+                                inputMode="decimal"
+                                className="h-9"
+                                disabled={readOnly}
+                              />
+                            </TableCell>
+                          );
+                        }
+                        // computed per participant
+                        let display = '';
+                        if (ind.key === 'yield_avg') {
+                          const m = getMean(p.id);
+                          display = m != null ? round2(m) : '';
+                        } else if (ind.key === 'over_std_abs') {
+                          const m = getMean(p.id);
+                          display = (m != null && sAvg != null) ? round2(m - sAvg) : '';
+                        } else if (ind.key === 'over_std_pct') {
+                          const m = getMean(p.id);
+                          display = (m != null && sAvg && sAvg > 0) ? round2(((m - sAvg) / sAvg) * 100) : '';
+                        }
+                        return (
+                          <TableCell key={p.id} className="text-sm text-muted-foreground">
+                            {display || '—'}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
