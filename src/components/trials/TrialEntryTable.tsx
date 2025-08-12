@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { IndicatorGroup, getIndicatorGroups, round2 } from '@/lib/trialsConfig';
-import { Trial, avg, stdSample, cvPercent, lsd } from '@/lib/trialsStore';
+import { Trial, avg } from '@/lib/trialsStore';
 
 export type ValuesMap = Record<string, Record<string, string>>; // participantId -> key -> value
 
@@ -35,14 +35,6 @@ export const TrialEntryTable = ({ trial, values, onChange, readOnly }: TrialEntr
   };
 
   const sAvg = standard ? getMean(standard.id) : undefined;
-  const sSigma = standard ? stdSample([
-    getNum(standard.id, 'yield_plot1')!,
-    getNum(standard.id, 'yield_plot2')!,
-    getNum(standard.id, 'yield_plot3')!,
-    getNum(standard.id, 'yield_plot4')!,
-  ].filter((v): v is number => typeof v === 'number')) : undefined;
-  const pAcc = cvPercent(sAvg, sSigma);
-  const lsdVal = lsd(sSigma, 4, 2.0);
 
   return (
     <div className="space-y-6">
@@ -64,27 +56,9 @@ export const TrialEntryTable = ({ trial, values, onChange, readOnly }: TrialEntr
               </TableHeader>
               <TableBody>
                 {group.indicators.map((ind) => {
-                  // Trial-wide stats shown once across all participants
+                  // Пропускаем статистику опыта из таблицы — убрано по требованию
                   if (ind.key === 'sx' || ind.key === 'p_accuracy' || ind.key === 'lsd') {
-                    let display = '';
-                    if (ind.key === 'sx') {
-                      display = sSigma != null ? round2(sSigma) : '';
-                    } else if (ind.key === 'p_accuracy') {
-                      display = pAcc != null ? round2(pAcc) : '';
-                    } else if (ind.key === 'lsd') {
-                      display = lsdVal != null ? round2(lsdVal) : '';
-                    }
-                    return (
-                      <TableRow key={ind.key} className="bg-muted/40">
-                        <TableCell className="sticky left-0 bg-background z-10">
-                          <div className="font-medium">{ind.label}{ind.unit ? `, ${ind.unit}` : ''}</div>
-                          <div className="text-xs text-muted-foreground">для опыта</div>
-                        </TableCell>
-                        <TableCell colSpan={trial.participants.length} className="text-sm text-muted-foreground">
-                          {display || '—'}
-                        </TableCell>
-                      </TableRow>
-                    );
+                    return null;
                   }
 
                   return (
@@ -132,14 +106,6 @@ export const TrialEntryTable = ({ trial, values, onChange, readOnly }: TrialEntr
           </div>
         </div>
       ))}
-      <div className="rounded-md border bg-muted/30 p-3">
-        <div className="text-xs uppercase tracking-wider text-muted-foreground">Статистика опыта (для опыта)</div>
-        <div className="mt-2 flex flex-wrap gap-4 text-sm">
-          <div><span className="text-muted-foreground">Sx:</span> {sSigma != null ? round2(sSigma) : '—'}</div>
-          <div><span className="text-muted-foreground">P, %:</span> {pAcc != null ? round2(pAcc) : '—'}</div>
-          <div><span className="text-muted-foreground">НСР:</span> {lsdVal != null ? round2(lsdVal) : '—'}</div>
-        </div>
-      </div>
     </div>
   );
 };
