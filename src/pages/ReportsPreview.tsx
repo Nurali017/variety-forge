@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { buildReportData, getMatchingTrials } from "@/lib/reports/aggregation";
 import { ReportParams } from "@/lib/reports/types";
 import { ReportGroupTable } from "@/components/reports/ReportGroupTable";
+import { YearIndicatorsTable } from "@/components/reports/YearIndicatorsTable";
 import { getRegionName, getOblastByRegion } from "@/lib/locations";
 import { getTrials, getResultsForTrial } from "@/lib/trialsStore";
 import { Button } from "@/components/ui/button";
@@ -180,6 +181,15 @@ useEffect(() => {
                       <div key={g.maturityGroup} className="space-y-2">
                         <div className="text-sm font-medium">Группа спелости: {g.maturityGroup}</div>
                         <ReportGroupTable years={site.years} rows={g.rows} defaultStandardId={g.defaultStandardVarietyId} />
+                        {site.years.map((y) => {
+                          const hasAny = g.rows.some((r) => r.indicatorsByYear && r.indicatorsByYear[y] && Object.keys(r.indicatorsByYear[y]).length > 0);
+                          return hasAny ? (
+                            <div key={`ind-${g.maturityGroup}-${y}`} className="space-y-1">
+                              <div className="text-sm text-muted-foreground">В отчётном году — {y}</div>
+                              <YearIndicatorsTable year={y} rows={g.rows} defaultStandardId={g.defaultStandardVarietyId} />
+                            </div>
+                          ) : null;
+                        })}
                       </div>
                     ))}
                   </article>

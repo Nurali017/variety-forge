@@ -42,15 +42,7 @@ export function buildReportData(params: ReportParams): ReportData {
     }
 
     for (const p of trial.participants) {
-      // Collect 4 plot yields and compute mean for the year if all present
-      const v1 = parseNum(byPid[p.id]?.["yield_plot1"]);
-      const v2 = parseNum(byPid[p.id]?.["yield_plot2"]);
-      const v3 = parseNum(byPid[p.id]?.["yield_plot3"]);
-      const v4 = parseNum(byPid[p.id]?.["yield_plot4"]);
-      const arr = [v1, v2, v3, v4];
-      if (arr.some((v) => v == null)) continue; // require full set for the year
-      const yrMean = mean(arr as number[])!;
-
+      // Resolve variety and mapping entries first to ensure rows exist even without full yield data
       const variety = getVariety(p.varietyId);
       const maturity = variety?.maturityGroup || "—";
       const vName = variety?.name || p.varietyId;
@@ -68,19 +60,53 @@ export function buildReportData(params: ReportParams): ReportData {
       if (!varietiesMap.has(p.varietyId)) {
         const byYear: Record<number, number | undefined> = {};
         params.years.forEach((y) => (byYear[y] = undefined));
+        const indicatorsByYear: Record<number, any> = {};
         varietiesMap.set(p.varietyId, {
           varietyId: p.varietyId,
           varietyName: vName,
           maturityGroup: maturity,
           byYear,
+          indicatorsByYear,
           avg: undefined,
         });
       }
       const row = varietiesMap.get(p.varietyId)!;
-      row.byYear[trial.year] = yrMean;
 
+      // Count standards regardless of yield presence
       if (p.isStandard) {
         standardCountByVariety.set(p.varietyId, (standardCountByVariety.get(p.varietyId) || 0) + 1);
+      }
+
+      // Collect 4 plot yields and compute mean for the year if all present
+      const v1 = parseNum(byPid[p.id]?.["yield_plot1"]);
+      const v2 = parseNum(byPid[p.id]?.["yield_plot2"]);
+      const v3 = parseNum(byPid[p.id]?.["yield_plot3"]);
+      const v4 = parseNum(byPid[p.id]?.["yield_plot4"]);
+      const arr = [v1, v2, v3, v4];
+      if (!arr.some((v) => v == null)) {
+        const yrMean = mean(arr as number[])!;
+        row.byYear[trial.year] = yrMean;
+      }
+
+      // Populate agronomic indicators for the reporting year
+      const yearIndicators: any = {};
+      const vp = parseNum(byPid[p.id]?.["vegetation_period"]);
+      const tw = parseNum(byPid[p.id]?.["thousand_grain_weight"]);
+      const sr = parseNum(byPid[p.id]?.["shattering_resistance"]);
+      const lr = parseNum(byPid[p.id]?.["lodging_resistance"]);
+      const dr = parseNum(byPid[p.id]?.["drought_resistance"]);
+      const sm = parseNum(byPid[p.id]?.["smut"]);
+      const st = parseNum(byPid[p.id]?.["stem_rust"]);
+      if (vp != null) yearIndicators.vegDays = vp;
+      if (tw != null) yearIndicators.thousandWeight = tw;
+      if (sr != null) yearIndicators.resistShatter = sr;
+      if (lr != null) yearIndicators.resistLodge = lr;
+      if (dr != null) yearIndicators.resistDrought = dr;
+      if (sm != null) yearIndicators.smut = sm;
+      if (st != null) yearIndicators.stemRust = st;
+      if (Object.keys(yearIndicators).length > 0) {
+        if (!row.indicatorsByYear) (row as any).indicatorsByYear = {};
+        row.indicatorsByYear[trial.year] = { ...(row.indicatorsByYear[trial.year] || {}), ...yearIndicators } as any;
       }
     }
   }

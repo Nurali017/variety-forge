@@ -5,11 +5,22 @@ export interface ReportParams {
   predecessor?: string;
 }
 
+export interface YearIndicators {
+  vegDays?: number;
+  thousandWeight?: number;
+  resistShatter?: number;
+  resistLodge?: number;
+  resistDrought?: number;
+  smut?: number;
+  stemRust?: number;
+}
+
 export interface ReportRow {
   varietyId: string;
   varietyName: string;
   maturityGroup: string; // from VarietyRecord
   byYear: Record<number, number | undefined>; // yield mean by year
+  indicatorsByYear: Record<number, YearIndicators>; // per-year agronomic indicators
   avg?: number; // mean across available years
 }
 
