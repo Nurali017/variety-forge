@@ -31,10 +31,12 @@ const VarietyCard = () => {
 
   const infoData = {
     applicant: variety.applicant,
-    inn: variety.inn || "—",
+    inn: variety.inn,
+    contactPerson: variety.contactPerson,
     maturityGroup: variety.maturityGroup,
     submissionDate: variety.submissionDate,
-    targetRegions: variety.targetRegions || [],
+    targetOblasts: variety.targetOblasts,
+    gssCheck: variety.gssCheck,
   };
 
   type Doc = { id: string; name: string; type: 'pdf' | 'doc' | 'docx'; size?: string };
@@ -50,7 +52,6 @@ const VarietyCard = () => {
       <VarietyHeader
         name={variety.name}
         culture={`${variety.cultureLabel} • ${variety.cultureGroup}`}
-        status={variety.status}
       />
 
       <div className="container mx-auto py-6 space-y-6">

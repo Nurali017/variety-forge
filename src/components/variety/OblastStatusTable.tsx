@@ -7,14 +7,14 @@ interface OblastStatusTableProps {
   oblastStatuses: OblastStatus[];
 }
 
-const statusConfig = {
-  submitted: { label: 'Заявлен к испытанию', variant: 'secondary' as const },
-  testing: { label: 'На испытании', variant: 'secondary' as const, className: 'bg-processing text-processing-foreground hover:bg-processing/90' },
-  approved: { label: 'Включён в реестр', variant: 'success' as const },
-  rejected: { label: 'Отклонён', variant: 'destructive' as const },
-  recommended_to_remove: { label: 'Рекомендован к снятию', variant: 'destructive' as const },
-  recommended_to_extend: { label: 'Рекомендован к продлению', variant: 'success' as const },
-  removed: { label: 'Снят', variant: 'destructive' as const },
+const statusConfig: Record<string, { label: string; variant: 'secondary' | 'success' | 'destructive'; className?: string }> = {
+  submitted: { label: 'Заявлен к испытанию', variant: 'secondary' },
+  testing: { label: 'На испытании', variant: 'secondary', className: 'bg-processing text-processing-foreground hover:bg-processing/90' },
+  approved: { label: 'Включён в реестр', variant: 'success' },
+  rejected: { label: 'Отклонён', variant: 'destructive' },
+  recommended_to_remove: { label: 'Рекомендован к снятию', variant: 'destructive' },
+  recommended_to_extend: { label: 'Рекомендован к продлению', variant: 'success' },
+  removed: { label: 'Снят', variant: 'destructive' },
 };
 
 export const OblastStatusTable = ({ oblastStatuses }: OblastStatusTableProps) => {

@@ -100,6 +100,8 @@ const CreateVariety = () => {
         targetOblasts,
         gssCheck,
         documents,
+        results: [],
+        oblastStatuses: [],
       });
 
       toast({ title: 'Сорт создан', description: 'Карточка сорта открыта' });

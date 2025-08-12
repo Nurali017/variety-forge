@@ -109,13 +109,8 @@ export const RegionSelector = ({ selectedRegions, onRegionsChange }: RegionSelec
               <div className="flex items-center space-x-2 p-3 bg-muted/50">
                 <Checkbox
                   id={`oblast-${oblast.id}`}
-                  checked={isOblastFullySelected(oblast.id)}
-                  ref={(ref) => {
-                    if (ref) {
-                      ref.indeterminate = isOblastPartiallySelected(oblast.id);
-                    }
-                  }}
-                  onCheckedChange={(checked) => handleOblastSelectAll(oblast.id, checked as boolean)}
+                  checked={isOblastFullySelected(oblast.id) ? true : isOblastPartiallySelected(oblast.id) ? 'indeterminate' : false}
+                  onCheckedChange={(checked) => handleOblastSelectAll(oblast.id, checked === true)}
                 />
                 <Label 
                   htmlFor={`oblast-${oblast.id}`}

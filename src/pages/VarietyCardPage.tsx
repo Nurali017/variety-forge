@@ -5,42 +5,13 @@ import { VarietyInfo } from "@/components/variety/VarietyInfo";
 import { VarietyDocuments } from "@/components/variety/VarietyDocuments";
 import { VarietyResults } from "@/components/variety/VarietyResults";
 import { OblastStatusTable } from "@/components/variety/OblastStatusTable";
-import { getVariety } from "@/lib/varietiesStore";
+import { getVariety, VarietyRecord } from "@/lib/varietiesStore";
 import { getVarietyResultsFromTrials } from "@/lib/varietyResults";
 import { MainToolbar } from "@/components/varieties/MainToolbar";
 
-// This is a temporary type definition until the main VarietyRecord is updated
-interface VarietyData {
-  id: string;
-  name: string;
-  cultureLabel: string;
-  cultureGroup: string;
-  oblastStatuses: Array<{
-    oblastId: string;
-    oblastName: string;
-    status: 'testing' | 'approved' | 'rejected' | 'recommended_to_remove' | 'recommended_to_extend' | 'removed' | 'submitted';
-    submissionDate: string;
-    lastUpdated: string;
-  }>;
-  applicant?: string;
-  inn?: string;
-  contactPerson?: { name: string; phone: string; email: string };
-  maturityGroup?: string;
-  submissionDate?: string;
-  targetOblasts?: string[];
-  gssCheck?: boolean;
-  documents?: { id: string; name: string; type: 'pdf' | 'doc' | 'docx'; size?: string }[];
-  results?: any[];
-}
-
-// A placeholder type for VarietyRecord, as the original is not provided.
-// This should be replaced with the actual type from the store.
-type VarietyRecord = VarietyData;
-
 const VarietyCardPage = () => {
   const { id } = useParams<{ id: string }>();
-
-  const variety: VarietyRecord | undefined = useMemo(() => (id ? getVariety(id) : undefined), [id]);
+  const variety: VarietyRecord | null = useMemo(() => (id ? getVariety(id) : null), [id]);
   
   // Получаем результаты из сортоопытов и преобразуем в нужный формат
   const trialResults = useMemo(() => {
@@ -129,15 +100,13 @@ const VarietyCardPage = () => {
   const docs: Doc[] = (variety.documents || []).map((d) => ({
     id: d.id,
     name: d.name,
-    type: d.type,
+    type: d.type === 'pdf' ? 'pdf' : d.type === 'docx' ? 'docx' : 'doc',
     size: d.size,
   }));
 
   return (
     <>
-      <MainToolbar>
-        <h1 className="text-xl font-semibold">Детали сорта: {variety.name}</h1>
-      </MainToolbar>
+      <MainToolbar />
       <main className="container mx-auto py-8">
         <div className="space-y-8">
           <VarietyHeader

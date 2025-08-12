@@ -1,21 +1,22 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { RegionStatus } from "@/lib/varietiesStore";
+import { Status } from "@/lib/varietiesStore";
 import { getRegionName, getOblastByRegion } from "@/lib/locations";
+
+interface RegionStatus { region: string; status: Status | string }
 
 interface RegionStatusTableProps {
   regionStatuses: RegionStatus[];
 }
 
-const statusConfig = {
-  submitted: { label: 'Заявлен к испытанию', variant: 'secondary' as const },
-  testing: { label: 'На испытании', variant: 'secondary' as const, className: 'bg-processing text-processing-foreground hover:bg-processing/90' },
-  approved: { label: 'Включён в реестр', variant: 'success' as const },
-  rejected: { label: 'Отклонён', variant: 'destructive' as const },
-  recommended: { label: 'Рекомендован', variant: 'success' as const },
-  extended: { label: 'Продлён', variant: 'secondary' as const },
-  removed: { label: 'Снят', variant: 'destructive' as const },
+const statusConfig: Record<string, { label: string; variant: 'secondary' | 'success' | 'destructive'; className?: string }> = {
+  submitted: { label: 'Заявлен к испытанию', variant: 'secondary' },
+  testing: { label: 'На испытании', variant: 'secondary', className: 'bg-processing text-processing-foreground hover:bg-processing/90' },
+  approved: { label: 'Включён в реестр', variant: 'success' },
+  rejected: { label: 'Отклонён', variant: 'destructive' },
+  recommended_to_extend: { label: 'Рекомендован', variant: 'success' },
+  removed: { label: 'Снят', variant: 'destructive' },
 };
 
 export const RegionStatusTable = ({ regionStatuses }: RegionStatusTableProps) => {
