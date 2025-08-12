@@ -1,14 +1,18 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { buildReportData } from "@/lib/reports/aggregation";
+import { buildReportData, getMatchingTrials } from "@/lib/reports/aggregation";
 import { ReportParams } from "@/lib/reports/types";
 import { ReportGroupTable } from "@/components/reports/ReportGroupTable";
 import { getRegionName, getOblastByRegion } from "@/lib/locations";
-import { getTrials } from "@/lib/trialsStore";
-import {Button} from "@/components/ui/button.tsx";
-import {Link} from "react-router-dom";
-
+import { getTrials, getResultsForTrial } from "@/lib/trialsStore";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { cultureLabels } from "@/lib/trialsConfig";
 function setMeta(tag: string, attrs: Record<string, string>) {
   let el = document.querySelector(`${tag}${attrs.name ? `[name=\"${attrs.name}\"]` : ""}${attrs.rel ? `[rel=\"${attrs.rel}\"]` : ""}`) as HTMLMetaElement | HTMLLinkElement | null;
   if (!el) {
@@ -23,35 +27,70 @@ function setMeta(tag: string, attrs: Record<string, string>) {
 }
 
 const ReportsPreview = () => {
-  // Параметры формируем на лету из данных: культура и доступные годы
-  const cultureId = "wheat";
-  const years = useMemo(() => {
-    const ys = Array.from(new Set(getTrials().filter(t => t.cultureId === cultureId).map(t => t.year)));
+  const trials = useMemo(() => getTrials(), []);
+  const cultures = useMemo(() => Array.from(new Set(trials.map(t => t.cultureId))), [trials]);
+  const [cultureId, setCultureId] = useState<string>(cultures[0] || "wheat");
+  const yearsAll = useMemo(() => {
+    const ys = Array.from(new Set(trials.filter(t => t.cultureId === cultureId).map(t => t.year)));
     return ys.sort((a,b) => a - b);
-  }, []);
+  }, [trials, cultureId]);
+  const [years, setYears] = useState<number[]>(yearsAll);
 
-  const params: ReportParams = {
+  useEffect(() => { setYears(yearsAll); }, [yearsAll]);
+
+  const params: ReportParams = useMemo(() => ({
     region: "",
     years: years.length ? years : [new Date().getFullYear()],
     cultureId,
-  };
+  }), [cultureId, years]);
 
   const data = useMemo(() => buildReportData(params), [params]);
+  const hasAnyRows = useMemo(() => data.regions.some(r => r.sites.some(s => s.groups.some(g => g.rows.length > 0))), [data]);
+  const cultureLabel = cultureLabels[cultureId] || cultureId;
 
-  useEffect(() => {
-    const regionLabel = params.region || "Все регионы";
-    const title = `Итоговый отчет — Пшеница, ${regionLabel}, ${params.years[0]}–${params.years[params.years.length - 1]}`;
-    document.title = title;
+  type DiagEntry = { trialId: string; year: number; site: string; participant: string; isStandard: boolean; missing: number[] };
+  const diagnostics = useMemo<DiagEntry[]>(() => {
+    if (hasAnyRows) return [];
+    const list: DiagEntry[] = [];
+    const mts = getMatchingTrials(params);
+    for (const tr of mts) {
+      const res = getResultsForTrial(tr);
+      const byPid: Record<string, Record<string, string>> = {};
+      for (const r of res) {
+        if (!byPid[r.participantId]) byPid[r.participantId] = {};
+        byPid[r.participantId][r.key] = r.value;
+      }
+      for (const p of tr.participants) {
+        const miss: number[] = [];
+        for (let i = 1; i <= 4; i++) {
+          const v = byPid[p.id]?.[`yield_plot${i}`];
+          const n = Number((v || '').toString().replace(',', '.'));
+          if (!Number.isFinite(n)) miss.push(i);
+        }
+        if (miss.length > 0) {
+          list.push({ trialId: tr.id, year: tr.year, site: tr.locationId, participant: p.varietyName, isStandard: p.isStandard, missing: miss });
+        }
+      }
+    }
+    return list;
+  }, [params, hasAnyRows]);
 
-    setMeta("meta", { name: "description", content: `Сводный многолетний отчет по культуре Пшеница для ${regionLabel}.` });
-    setMeta("link", { rel: "canonical", href: `${window.location.origin}/reports/preview` });
-  }, [params]);
+useEffect(() => {
+  const regionLabel = params.region || "Все регионы";
+  const yrs = params.years;
+  const yearsRange = yrs.length > 1 ? `${yrs[0]}–${yrs[yrs.length - 1]}` : `${yrs[0]}`;
+  const title = `Итоговый отчет — ${cultureLabel}, ${regionLabel}, ${yearsRange}`;
+  document.title = title;
+
+  setMeta("meta", { name: "description", content: `Сводный многолетний отчет по культуре ${cultureLabel} для ${regionLabel}.` });
+  setMeta("link", { rel: "canonical", href: `${window.location.origin}/reports/preview` });
+}, [params, cultureLabel]);
 
   return (
     <main className="container mx-auto p-4 space-y-6">
-      <header>
-        <h2 className="text-2xl font-semibold">Итоговый отчет — Пшеница</h2>
-        <p className="text-sm text-muted-foreground">{params.region || 'Все регионы'} • {params.years[0]}–{params.years[params.years.length - 1]}</p>
+      <header className="space-y-2">
+        <h2 className="text-2xl font-semibold">Итоговый отчет — {cultureLabel}</h2>
+        <p className="text-sm text-muted-foreground">{params.region || 'Все регионы'} • {years.length > 1 ? `${years[0]}–${years[years.length - 1]}` : years[0]}</p>
         <nav className="hidden md:flex items-center gap-3">
           <Button variant="ghost" asChild>
             <Link to="/">Назад</Link>
@@ -59,8 +98,67 @@ const ReportsPreview = () => {
         </nav>
       </header>
 
+      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div>
+          <Label htmlFor="culture">Культура</Label>
+          <Select value={cultureId} onValueChange={setCultureId}>
+            <SelectTrigger id="culture">
+              <SelectValue placeholder="Выберите культуру" />
+            </SelectTrigger>
+            <SelectContent>
+              {cultures.map((c) => (
+                <SelectItem key={c} value={c}>{cultureLabels[c] || c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="md:col-span-2">
+          <Label>Годы</Label>
+          <div className="mt-2 flex flex-wrap gap-3">
+            {yearsAll.map((y) => (
+              <div key={y} className="flex items-center gap-2">
+                <Checkbox
+                  id={`year-${y}`}
+                  checked={years.includes(y)}
+                  onCheckedChange={(chk) => {
+                    const checked = Boolean(chk);
+                    setYears((prev) => {
+                      if (checked) return Array.from(new Set([...prev, y])).sort((a,b)=>a-b);
+                      if (prev.length <= 1) return prev; // не допускаем пустой список
+                      return prev.filter((v) => v !== y);
+                    });
+                  }}
+                />
+                <Label htmlFor={`year-${y}`}>{y}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {!hasAnyRows && (
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="diag">
+            <AccordionTrigger>Диагностика: почему нет данных</AccordionTrigger>
+            <AccordionContent>
+              {diagnostics.length === 0 ? (
+                <div className="text-sm text-muted-foreground">Нет подходящих опытов для выбранных параметров.</div>
+              ) : (
+                <ul className="list-disc pl-6 space-y-1 text-sm">
+                  {diagnostics.map((d, idx) => (
+                    <li key={idx}>
+                      {d.year} • {d.site} — {d.participant}{d.isStandard ? " (стандарт)" : ""}: отсутствуют делянки {d.missing.join(", ")}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
+
       {data.regions.map((region) => (
-          <section key={region.region} className="space-y-4">
+        <section key={region.region} className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-xl font-semibold">{region.region}</CardTitle>

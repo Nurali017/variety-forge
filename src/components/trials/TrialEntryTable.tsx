@@ -46,6 +46,14 @@ export const TrialEntryTable = ({ trial, values, onChange, readOnly }: TrialEntr
 
   return (
     <div className="space-y-6">
+      <div className="rounded-md border bg-muted/30 p-3">
+        <div className="text-xs uppercase tracking-wider text-muted-foreground">Статистика опыта (для опыта)</div>
+        <div className="mt-2 flex flex-wrap gap-4 text-sm">
+          <div><span className="text-muted-foreground">Sx:</span> {sSigma != null ? round2(sSigma) : '—'}</div>
+          <div><span className="text-muted-foreground">P, %:</span> {pAcc != null ? round2(pAcc) : '—'}</div>
+          <div><span className="text-muted-foreground">НСР:</span> {lsdVal != null ? round2(lsdVal) : '—'}</div>
+        </div>
+      </div>
       {groups.map((group) => (
         <div key={group.name} className="border rounded-md overflow-hidden">
           <div className="px-4 py-2 bg-muted text-sm font-medium">{group.name}</div>
@@ -75,9 +83,10 @@ export const TrialEntryTable = ({ trial, values, onChange, readOnly }: TrialEntr
                       display = lsdVal != null ? round2(lsdVal) : '';
                     }
                     return (
-                      <TableRow key={ind.key}>
+                      <TableRow key={ind.key} className="bg-muted/40">
                         <TableCell className="sticky left-0 bg-background z-10">
                           <div className="font-medium">{ind.label}{ind.unit ? `, ${ind.unit}` : ''}</div>
+                          <div className="text-xs text-muted-foreground">для опыта</div>
                         </TableCell>
                         <TableCell colSpan={trial.participants.length} className="text-sm text-muted-foreground">
                           {display || '—'}
