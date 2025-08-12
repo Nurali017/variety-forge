@@ -7,6 +7,7 @@ export interface DocumentItem {
   name: string;
   type: 'pdf' | 'docx' | 'other';
   size: string;
+  categoryId?: string;
 }
 
 export interface TestResult {

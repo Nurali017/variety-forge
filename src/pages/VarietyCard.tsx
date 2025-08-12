@@ -1,15 +1,16 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { VarietyHeader } from "@/components/variety/VarietyHeader";
 import { VarietyInfo } from "@/components/variety/VarietyInfo";
-import { VarietyDocuments } from "@/components/variety/VarietyDocuments";
 import { VarietyResults } from "@/components/variety/VarietyResults";
-import { getVariety } from "@/lib/varietiesStore";
+import { getVariety, updateVariety } from "@/lib/varietiesStore";
+import { DocumentUpload } from "@/components/forms/DocumentUpload";
 
 const VarietyCard = () => {
   const { id } = useParams();
+  const [refresh, setRefresh] = useState(0);
 
-  const variety = useMemo(() => (id ? getVariety(id) : undefined), [id]);
+  const variety = useMemo(() => (id ? getVariety(id) : undefined), [id, refresh]);
 
   useEffect(() => {
     if (variety) {
@@ -39,13 +40,7 @@ const VarietyCard = () => {
     gssCheck: variety.gssCheck,
   };
 
-  type Doc = { id: string; name: string; type: 'pdf' | 'doc' | 'docx'; size?: string };
-  const docs: Doc[] = (variety.documents || []).map((d) => ({
-    id: d.id,
-    name: d.name,
-    size: d.size,
-    type: d.type === "pdf" ? "pdf" : d.type === "docx" ? "docx" : "doc",
-  }));
+// документы берём напрямую из variety.documents
 
   return (
     <div className="min-h-screen bg-background">

@@ -77,25 +77,43 @@ export const DocumentUpload = ({ documents, onDocumentsChange }: DocumentUploadP
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
-    
     const newDocuments: DocumentItem[] = Array.from(files).map((file, idx) => {
       const ext = file.name.split('.').pop()?.toLowerCase();
       const type: DocumentItem['type'] = ext === 'pdf' ? 'pdf' : ext === 'docx' ? 'docx' : 'other';
       const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-      
       return {
         id: `${Date.now()}_${idx}`,
         name: file.name,
         type,
-        size: `${sizeMb} МБ`
+        size: `${sizeMb} МБ`,
       };
     });
-    
     onDocumentsChange([...documents, ...newDocuments]);
+  };
+
+  const handleFilesFor = (categoryId: string, files: FileList | null) => {
+    if (!files || !files[0]) return;
+    const file = files[0];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const type: DocumentItem['type'] = ext === 'pdf' ? 'pdf' : ext === 'docx' ? 'docx' : 'other';
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+    const newDoc: DocumentItem = {
+      id: `${Date.now()}`,
+      name: file.name,
+      type,
+      size: `${sizeMb} МБ`,
+      categoryId,
+    };
+    const others = documents.filter(d => d.categoryId !== categoryId);
+    onDocumentsChange([...others, newDoc]);
   };
 
   const removeDocument = (id: string) => {
     onDocumentsChange(documents.filter(doc => doc.id !== id));
+  };
+
+  const removeByCategory = (categoryId: string) => {
+    onDocumentsChange(documents.filter(doc => doc.categoryId !== categoryId));
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -112,14 +130,15 @@ export const DocumentUpload = ({ documents, onDocumentsChange }: DocumentUploadP
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
   };
 
-  // Создаем карту загруженных документов для быстрого поиска
-  const uploadedDocsMap = new Map(documents.map(doc => [doc.name.toLowerCase(), doc]));
+// Карта загруженных файлов по категориям (для обязательных документов)
+const uploadedByCategory = new Map(
+  documents.filter(doc => !!doc.categoryId).map(doc => [doc.categoryId as string, doc])
+);
 
   return (
     <Card>
