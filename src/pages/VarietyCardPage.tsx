@@ -17,51 +17,79 @@ const VarietyCardPage = () => {
   const trialResults = useMemo(() => {
     if (!id) return [];
     const rawResults = getVarietyResultsFromTrials(id);
-    
+
+    // Карта отображения ключей показателей -> русские названия (в составе и порядке как в сводном отчёте)
+    const DISPLAY_ORDER = [
+      'yield_avg',
+      'vegetation_period',
+      'thousand_grain_weight',
+      'shattering_resistance',
+      'lodging_resistance',
+      'drought_resistance',
+      'smut',
+      'stem_rust',
+    ] as const;
+    const LABELS: Record<string, string> = {
+      yield_avg: 'Урожайность, ц/га',
+      vegetation_period: 'Вегетационный период, дней',
+      thousand_grain_weight: 'Масса 1000 зерен, г',
+      shattering_resistance: 'Устойчивость к осыпанию, балл',
+      lodging_resistance: 'Устойчивость к полеганию, балл',
+      drought_resistance: 'Устойчивость к засухе, балл',
+      smut: 'Пыльная головня, балл',
+      stem_rust: 'Стеблевая ржавчина, балл',
+    };
+
     // Группируем результаты по регионам и годам
-    const regionMap = new Map<string, Map<number, any[]>>();
-    
-    for (const trialResult of rawResults) {
-      const region = trialResult.locationId;
-      const year = trialResult.trialYear;
-      
-      if (!regionMap.has(region)) {
-        regionMap.set(region, new Map());
-      }
-      
-      if (!regionMap.get(region)!.has(year)) {
-        regionMap.get(region)!.set(year, []);
-      }
-      
-      // Преобразуем TrialResult в TestResult
-      for (const result of trialResult.results) {
-        regionMap.get(region)!.get(year)!.push({
-          indicator: result.key,
-          varietyValue: result.value,
-          standardValue: '—', // Пока нет данных о стандартном сорте
+    const regionMap = new Map<string, Map<number, { results: any[] }>>();
+
+    for (const tr of rawResults) {
+      const region = tr.locationId;
+      const year = tr.trialYear;
+      if (!regionMap.has(region)) regionMap.set(region, new Map());
+      const yearEntry = regionMap.get(region)!;
+      if (!yearEntry.has(year)) yearEntry.set(year, { results: [] });
+
+      const bucket = yearEntry.get(year)!;
+
+      // Кладём только нужные ключи и уже с русскими подписями; избегаем дублей по индикатору
+      for (const r of tr.results) {
+        if (!DISPLAY_ORDER.includes(r.key as any)) continue;
+        const label = LABELS[r.key] || r.key;
+        const exists = bucket.results.some((x) => x.indicator === label);
+        if (exists) continue;
+        bucket.results.push({
+          indicator: label,
+          varietyValue: r.value,
+          standardValue: '—',
           deviation: '—',
-          isPositive: undefined
+          isPositive: undefined,
         });
       }
     }
-    
-    // Преобразуем в формат RegionData[]
+
+    // Преобразуем в формат RegionData[] с сортировкой и порядком показателей
     const regionData: any[] = [];
     for (const [region, yearMap] of regionMap) {
       const years: any[] = [];
-      for (const [year, results] of yearMap) {
+      for (const [year, { results }] of yearMap) {
+        // Отсортировать результаты в соответствии с DISPLAY_ORDER
+        const ordered = [...results].sort((a, b) => {
+          const ai = DISPLAY_ORDER.indexOf(Object.keys(LABELS).find(k => LABELS[k] === a.indicator) as any);
+          const bi = DISPLAY_ORDER.indexOf(Object.keys(LABELS).find(k => LABELS[k] === b.indicator) as any);
+          return ai - bi;
+        });
         years.push({
           year,
           summary: `Результаты испытаний за ${year} год`,
-          results
+          results: ordered,
         });
       }
-      regionData.push({
-        region,
-        years
-      });
+      // Сортировка лет по убыванию
+      years.sort((a, b) => b.year - a.year);
+      regionData.push({ region, years });
     }
-    
+
     return regionData;
   }, [id]);
 
