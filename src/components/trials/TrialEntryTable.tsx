@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { IndicatorGroup, getIndicatorGroups, round2 } from '@/lib/trialsConfig';
-import { Trial, avg } from '@/lib/trialsStore';
+import { Trial, avg, stdSample, cvPercent, lsd } from '@/lib/trialsStore';
 
 export type ValuesMap = Record<string, Record<string, string>>; // participantId -> key -> value
 
@@ -35,10 +35,18 @@ export const TrialEntryTable = ({ trial, values, onChange, readOnly }: TrialEntr
   };
 
   const sAvg = standard ? getMean(standard.id) : undefined;
+  const sSigma = standard ? stdSample([
+    getNum(standard.id, 'yield_plot1')!,
+    getNum(standard.id, 'yield_plot2')!,
+    getNum(standard.id, 'yield_plot3')!,
+    getNum(standard.id, 'yield_plot4')!,
+  ].filter((v): v is number => typeof v === 'number')) : undefined;
+  const pAcc = cvPercent(sAvg, sSigma);
+  const lsdVal = lsd(sSigma, 4, 2.0);
 
   return (
     <div className="space-y-6">
-      {groups.map((group) => (
+      {groups.map((group, idx) => (
         <div key={group.name} className="border rounded-md overflow-hidden">
           <div className="px-4 py-2 bg-muted text-sm font-medium">{group.name}</div>
           <div className="overflow-x-auto">
@@ -53,6 +61,18 @@ export const TrialEntryTable = ({ trial, values, onChange, readOnly }: TrialEntr
                     </TableHead>
                   ))}
                 </TableRow>
+                {idx === 0 && (
+                  <TableRow className="bg-muted/30">
+                    <TableCell colSpan={1 + trial.participants.length}>
+                      <div className="flex flex-wrap items-center gap-4 text-xs">
+                        <span className="uppercase tracking-wide text-muted-foreground">Статистика сортопыта</span>
+                        <span className="text-muted-foreground">Sx:</span> <span className="text-foreground">{sSigma != null ? round2(sSigma) : '—'}</span>
+                        <span className="text-muted-foreground">P, %:</span> <span className="text-foreground">{pAcc != null ? round2(pAcc) : '—'}</span>
+                        <span className="text-muted-foreground">НСР:</span> <span className="text-foreground">{lsdVal != null ? round2(lsdVal) : '—'}</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableHeader>
               <TableBody>
                 {group.indicators.map((ind) => {
