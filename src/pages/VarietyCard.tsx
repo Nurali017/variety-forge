@@ -53,9 +53,10 @@ const VarietyCard = () => {
         <VarietyInfo data={infoData} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <VarietyDocuments documents={docs} />
-          </div>
+<DocumentUpload 
+  documents={variety.documents || []}
+  onDocumentsChange={(docs) => { if (id) { updateVariety(id, { documents: docs }); setRefresh(v => v + 1); } }}
+/>
           <div className="lg:col-span-2">
             <VarietyResults resultsData={variety.results || []} />
           </div>

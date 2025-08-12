@@ -152,7 +152,7 @@ const uploadedByCategory = new Map(
         {/* Список требуемых документов */}
         <div className="space-y-4">
           {requiredDocuments.map((doc) => {
-            const uploadedDoc = uploadedDocsMap.get(doc.name.toLowerCase());
+            const uploadedDoc = uploadedByCategory.get(doc.id);
             const isUploaded = !!uploadedDoc;
             
             return (
@@ -175,15 +175,31 @@ const uploadedByCategory = new Map(
                     )}
                   </div>
                 </div>
-                {uploadedDoc && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => removeDocument(uploadedDoc.id)}
+                <div className="flex items-center gap-1">
+                  <input
+                    type="file"
+                    id={`cat-upload-${doc.id}`}
+                    className="hidden"
+                    onChange={(e) => handleFilesFor(doc.id, (e.target as HTMLInputElement).files)}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById(`cat-upload-${doc.id}`)?.click()}
                   >
-                    <X className="h-4 w-4" />
+                    {isUploaded ? 'Заменить' : 'Загрузить'}
                   </Button>
-                )}
+                  {uploadedDoc && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => removeByCategory(doc.id)}
+                      title="Удалить"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             );
           })}
